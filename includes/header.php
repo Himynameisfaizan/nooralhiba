@@ -46,13 +46,25 @@ if (!function_exists('img')) {
         $base_url = $site ?? "http://localhost/projects/nooralhiba/"; 
         $doc_root = $_SERVER['DOCUMENT_ROOT'] . "/projects/nooralhiba/";
         
-        $possible_paths = [$c, "admin/" . $c, "uploads/$d/$b", "admin/uploads/$d/$b", "assets/img/uploads/$d/$b", "assets/images/$b"];
+        // Yahan maine aapka exact path add kar diya hai
+        $possible_paths = [
+            $c, 
+            "admin/" . $c, 
+            "uploads/$d/$b", 
+            "admin/uploads/$d/$b", 
+            "assets/img/uploads/$d/$b", 
+            "assets/images/$b",
+            "admin/assets/img/uploads/$d/$b",
+            "admin/assets/img/uploads/$b" // <-- Ye raha aapka exact admin path
+        ];
+        
         foreach ($possible_paths as $p) {
             if (is_file($doc_root . $p)) return $base_url . $p;
         }
         return $fb;
     }
 }
+
 if (!function_exists('un')) {
     function un($id, $w = 800) { return "https://images.unsplash.com/$id?auto=format&fit=crop&w=$w&q=80"; }
 }

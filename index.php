@@ -2,8 +2,8 @@
 $page_title = 'Noor Al Hiba Trading LLC | Import & Export from Dubai to Africa';
 $page_desc = 'Export-grade spices, dry fruits and agro commodities to importers across Dubai, GCC and Africa.';
 
-// Ek hi baar header include hoga yahan
-include 'includes/header.php';
+// Sirf ek baar include hoga
+include_once 'includes/header.php';
 
 // ---- Data Fetching ----
 $B = q("SELECT banner_path FROM banners ORDER BY display_order ASC, id DESC LIMIT 1");
@@ -18,27 +18,21 @@ $FP = [
     ['Premium California Almonds', 'Dry fruits & nuts', 'Whole kernels, moisture-controlled, carton or vacuum packed for GCC and African wholesale.', 'photo-1508061253366-f7da158b6d46'],
     ['White Cashew Kernels W180 / W240 / W320', 'Dry fruits & nuts', 'Uniformly graded ivory kernels in 10 kg and 20 kg tins or CO2-flushed cartons.', 'photo-1563292769-4e05b684851a'],
     ['Guntur & Byadgi Dry Red Chilli', 'Whole spices', 'High-pungency, deep-colour chillies sorted for global spice processors.', 'photo-1588252303782-cb80119abd6d'],
-    ['Bold Green Cardamom 8mm+', 'Whole spices', 'Aromatic deep-green pods sourced direct from estates, ready for retail and bulk.', 'photo-1596040033229-a9821ebd058d'],
-    ['Golden Seedless Raisins', 'Dry fruits & nuts', 'Double-cleaned, low-moisture raisins for bakery, confectionery and distribution.', 'photo-1596591606975-97ee5cef3a1e'],
-    ['Malabar Bold Black Pepper', 'Whole spices', 'Machine-cleaned, high-piperine peppercorns meeting ASTA and phytosanitary norms.', 'photo-1532336414038-cf19250c5757'],
-    ['Cumin & Coriander Seeds 99%', 'Oil seeds & spices', 'Sortex-cleaned seeds in 25 kg and 50 kg PP or jute export bags.', 'photo-1615485290382-441e4d049cb5'],
-    ['Kashmiri Mongra Saffron', 'Luxury spices', 'ISO 3632 Grade I strands in acrylic or metal wholesale packaging.', 'photo-1509316975850-ff9c5deb0cd9'],
+    ['Bold Green Cardamom 8mm+', 'Whole spices', 'Aromatic deep-green pods sourced direct from estates, ready for retail and bulk.', 'photo-1596040033229-a9821ebd058d']
 ];
+
 $P = [];
-foreach (q("SELECT pro_name, pro_img, is_disabled, slug FROM products ORDER BY id DESC LIMIT 8") as $i => $r) {
+foreach (q("SELECT pro_name, pro_img, is_disabled, slug_url FROM products ORDER BY id DESC LIMIT 8") as $i => $r) {
     if (!empty($r['is_disabled']) || txt($r['pro_name']) === '') continue;
     $f = preg_split('/[,|;"]+/', trim(stripslashes((string)$r['pro_img']), '[]" '))[0];
-    $P[] = [txt($r['pro_name']), 'Export grade', 'Graded and packed for GCC and African importers. Ask for FOB or CIF pricing.', img($f, 'products', un($FP[$i % 8][3], 700)), $r['slug'] ?? ''];
+    $P[] = [txt($r['pro_name']), 'Export grade', 'Graded and packed for GCC and African importers. Ask for FOB or CIF pricing.', img($f, 'products', un($FP[$i % 4][3], 700)), $r['slug_url'] ?? ''];
 }
 if (count($P) < 4) { $P=[]; foreach ($FP as $x) $P[]=[$x[0], $x[1], $x[2], un($x[3], 700), '']; }
 
 $FS = [
     ['Global sourcing and procurement', 'Direct farm-gate and processing-unit buying for authentic origin, fair pricing and year-round bulk availability.'],
     ['Sea and air freight', 'FCL and LCL containers and express air cargo to Jebel Ali, Mombasa, Lagos, Durban and Muscat.'],
-    ['Private labelling and packaging', 'Food-grade vacuum packs, tins and 25 kg / 50 kg bags with Arabic, English and French labels.'],
-    ['SGS inspection and certification', 'Pre-shipment testing for moisture, aflatoxin and pesticide residue, with a COA for every lot.'],
-    ['Export documents and clearance', 'Certificate of Origin, phytosanitary and health certificates, bills of lading and port clearance.'],
-    ['Trade finance and Incoterms', 'Clear FOB, CIF, CFR and DDP terms, backed by secure L/C and TT banking channels.']
+    ['Private labelling and packaging', 'Food-grade vacuum packs, tins and 25 kg / 50 kg bags with Arabic, English and French labels.']
 ];
 $S = [];
 foreach (q("SELECT service_name, short_desc FROM services ORDER BY id ASC LIMIT 6") as $r) {
@@ -47,18 +41,23 @@ foreach (q("SELECT service_name, short_desc FROM services ORDER BY id ASC LIMIT 
 }
 if (count($S) < 3) $S = $FS;
 
+// ---- GALLERY FIX ----
 $G = [];
+global $site;
+$base_url = $site ?? "http://localhost/projects/nooralhiba/";
+
 foreach (q("SELECT image_name, image_path FROM gallery ORDER BY ID DESC LIMIT 6") as $r) {
-    $G[] = [txt($r['image_name']) ?: 'Export operations', img($r['image_path'], 'gallery', un('photo-1586528116311-ad8dd3c8310d'))];
+    // Force direct path to avoid 'img()' function confusion for gallery
+    $filename = basename($r['image_path']);
+    $exact_gallery_path = $base_url . "admin/uploads/gallery/" . $filename;
+    
+    $G[] = [txt($r['image_name']) ?: 'Export operations', $exact_gallery_path];
 }
 if (count($G) < 3) {
     $G = [
         ['Container loading and port dispatch', un('photo-1586528116311-ad8dd3c8310d')],
         ['Spice grading and Sortex cleaning', un('photo-1596040033229-a9821ebd058d')],
-        ['Cashew and dry fruit processing', un('photo-1508061253366-f7da158b6d46')],
-        ['Sea freight operations', un('photo-1494412574643-ff11b0a5c1c3')],
-        ['Hygienic warehouse storage', un('photo-1553413077-190dd305871c')],
-        ['Export-ready jute and carton pallets', un('photo-1532336414038-cf19250c5757')]
+        ['Cashew and dry fruit processing', un('photo-1508061253366-f7da158b6d46')]
     ];
 }
 
@@ -70,10 +69,7 @@ foreach (q("SELECT name, designation, client_company, message, rating FROM testi
 }
 if (count($T) < 2) {
     $T = [
-        ['Tariq Al-Mansoori', 'Procurement Director, Al-Baraka Foodstuff, Dubai', 'Our most dependable supplier for W240 cashews and green cardamom at Jebel Ali. Moisture control, packaging and paperwork are exact every time.', 5],
-        ['Samuel Ochieng', 'Managing Partner, East Africa Commodities, Mombasa', 'Full containers of spices need strict phytosanitary and SGS compliance. Every shipment left on schedule with no customs delays.', 5],
-        ['Khalid Bin Said', 'Head of Imports, Muscat Hypermarket Group, Oman', 'Their transparency on grading and pricing sets them apart. The almonds and raisins beat our retail benchmarks.', 5],
-        ['Chinedu Eze', 'CEO, West Coast Agro Ingredients, Lagos', 'From sample approval to the final 40ft dispatch, communication was first-class. A trustworthy partner for African food makers.', 5]
+        ['Tariq Al-Mansoori', 'Procurement Director, Al-Baraka Foodstuff, Dubai', 'Our most dependable supplier for W240 cashews and green cardamom at Jebel Ali. Moisture control, packaging and paperwork are exact every time.', 5]
     ];
 }
 
@@ -1287,6 +1283,7 @@ $C = [
             </div>
         </div>
     </section>
+
     <section id="about">
         <div class="wrap ab">
             <div class="fr rv"><img src="<?= e($about_i) ?>" alt="Noor Al Hiba warehouse and export operations"
@@ -1321,13 +1318,18 @@ $C = [
                 <article class="pc rv">
                     <div class="im">
                         <a href="product-details.php?slug=<?= e($p[4]) ?>">
-                            <img src="<?= e($p[3]) ?>" alt="<?= e($p[0]) ?>" loading="lazy">
+                            <img src="<?= e($p[3]) ?>" alt="<?= e($p[0]) ?>" loading="lazy"
+                                style="border-radius: 999px 999px 6px 6px; width: 100%; aspect-ratio: 4/4.4; object-fit: cover; transition: transform .9s cubic-bezier(.2, .7, .2, 1);">
                         </a>
                     </div>
-                    <small><?= e($p[1]) ?></small>
-                    <h3><a href="product-details.php?slug=<?= e($p[4]) ?>"><?= e($p[0]) ?></a></h3>
-                    <p><?= e(mb_strimwidth($p[2], 0, 100, '...')) ?></p>
+                    <small
+                        style="display: block; margin: 18px 6px 4px; color: var(--bronze); font-weight: 600; font-size: .78rem; text-transform: uppercase;"><?= e($p[1]) ?></small>
+                    <h3 style="font-size: 1.22rem; margin: 0 6px 8px;"><a
+                            href="product-details.php?slug=<?= e($p[4]) ?>"><?= e($p[0]) ?></a></h3>
+                    <p style="font-size: .88rem; color: var(--mut); margin: 0 6px 16px; line-height: 1.6;">
+                        <?= e(mb_strimwidth($p[2], 0, 100, '...')) ?></p>
                     <button type="button"
+                        style="margin: auto 6px 0; align-self: flex-start; background: 0; border: 0; border-bottom: 1.5px solid var(--gold); padding: 2px 0; font: 600 .9rem/1.4 'Hanken Grotesk', sans-serif; color: var(--ink); cursor: pointer;"
                         onclick="document.getElementById('pi').value='<?= e($p[0]) ?>'; document.getElementById('rfq').scrollIntoView({behavior: 'smooth'}); setTimeout(()=>document.getElementById('pi').focus(),700);">Request
                         bulk price</button>
                 </article>
@@ -1343,11 +1345,13 @@ $C = [
                 <p>From farm-level buying and lab testing to container loading and customs clearance at Dubai and
                     African ports.</p>
             </div>
-            <div class="sg">
+            <div class="sg"
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
                 <?php foreach ($S as $s): ?>
-                <div class="sv rv">
-                    <h3><?= e($s[0]) ?></h3>
-                    <p><?= e(mb_strimwidth($s[1], 0, 170, '...')) ?></p>
+                <div class="sv rv"
+                    style="background: #fff; border: 1px solid var(--line); border-top: 3px solid var(--gold); padding: 32px 28px; border-radius: 0 0 var(--r) var(--r);">
+                    <h3 style="font-size: 1.28rem; margin-bottom: 10px;"><?= e($s[0]) ?></h3>
+                    <p style="color: var(--mut); font-size: .93rem;"><?= e(mb_strimwidth($s[1], 0, 170, '...')) ?></p>
                 </div>
                 <?php endforeach; ?>
             </div>
@@ -1362,11 +1366,16 @@ $C = [
                 <p>Dedicated shipping-line contracts keep your cargo fresh, intact and fully documented from loading to
                     discharge.</p>
             </div>
-            <div class="cg">
+            <div class="cg"
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
                 <?php foreach ($C as $c): ?>
-                <div class="cr rv"><em><?= e($c[0]) ?></em>
-                    <h3><?= e($c[1]) ?></h3>
-                    <p><?= e($c[2]) ?></p><b><?= e($c[3]) ?></b>
+                <div class="cr rv"
+                    style="padding: 28px 24px; border: 1px solid rgba(214, 172, 86, .3); border-radius: var(--r);">
+                    <em style="font: normal 400 .85rem 'Hanken Grotesk'; color: var(--gold);"><?= e($c[0]) ?></em>
+                    <h3 style="font-size: 1.25rem; color: #fff; margin: 8px 0 10px;"><?= e($c[1]) ?></h3>
+                    <p style="font-size: .88rem; color: rgba(255, 255, 255, .7); margin-bottom: 16px;"><?= e($c[2]) ?>
+                    </p>
+                    <b style="font-size: .84rem; color: var(--gold); font-weight: 600;"><?= e($c[3]) ?></b>
                 </div>
                 <?php endforeach; ?>
             </div>
@@ -1378,29 +1387,41 @@ $C = [
             <div class="sh c rv">
                 <h2>Inside our export operations</h2><span class="ar">عملياتنا</span>
             </div>
-            <div class="gg">
+            <div class="gg"
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); grid-auto-rows: 250px; gap: 16px;">
                 <?php foreach ($G as $g): ?>
-                <figure class="rv"><img src="<?= e($g[1]) ?>" alt="<?= e($g[0]) ?>" loading="lazy">
-                    <figcaption><?= e($g[0]) ?></figcaption>
+                <figure class="rv" style="position: relative; overflow: hidden; border-radius: var(--r);">
+                    <img src="<?= e($g[1]) ?>" alt="<?= e($g[0]) ?>" loading="lazy"
+                        style="width: 100%; height: 100%; object-fit: cover;">
+                    <figcaption
+                        style="position: absolute; inset: auto 0 0; padding: 44px 20px 18px; color: #fff; font-weight: 500; background: linear-gradient(transparent, rgba(18, 35, 42, .88));">
+                        <?= e($g[0]) ?></figcaption>
                 </figure>
                 <?php endforeach; ?>
             </div>
         </div>
     </section>
 
-    <section class="te" id="testimonials">
+    <section class="te" id="testimonials" style="background: var(--sand);">
         <div class="wrap">
             <div class="sh c rv">
                 <h2>Trusted by importers in Dubai and Africa</h2><span class="ar">آراء عملائنا</span>
             </div>
-            <div class="tr rv">
+            <div class="tr rv"
+                style="display: flex; gap: 22px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 18px;">
                 <?php foreach ($T as $t): ?>
-                <div class="tc">
-                    <div><span class="st"><?= str_repeat('★', max(1, min(5, $t[3]))) ?></span>
-                        <p>“<?= e($t[2]) ?>”</p>
+                <div class="tc"
+                    style="flex: 0 0 min(400px, 86%); scroll-snap-align: start; background: #fff; border: 1px solid var(--line); border-radius: var(--r); padding: 30px; display: flex; flex-direction: column; justify-content: space-between; gap: 24px;">
+                    <div><span class="st"
+                            style="color: var(--gold); letter-spacing: 3px;"><?= str_repeat('★', max(1, min(5, $t[3]))) ?></span>
+                        <p style="margin-top: 10px; font-size: .98rem;">“<?= e($t[2]) ?>”</p>
                     </div>
-                    <div class="who"><i><?= e(strtoupper(mb_substr($t[0], 0, 1))) ?></i>
-                        <div><b><?= e($t[0]) ?></b><small><?= e($t[1]) ?></small></div>
+                    <div class="who"
+                        style="display: flex; gap: 14px; align-items: center; border-top: 1px solid var(--line); padding-top: 18px;">
+                        <i
+                            style="flex: none; width: 44px; height: 44px; border-radius: 50%; background: var(--ink); color: var(--gold); display: grid; place-items: center; font: normal 1.1rem Marcellus, serif;"><?= e(strtoupper(mb_substr($t[0], 0, 1))) ?></i>
+                        <div><b style="display: block; line-height: 1.3;"><?= e($t[0]) ?></b><small
+                                style="color: var(--mut);"><?= e($t[1]) ?></small></div>
                     </div>
                 </div>
                 <?php endforeach; ?>
@@ -1411,23 +1432,31 @@ $C = [
     <?php if ($Bl): ?>
     <section id="blogs">
         <div class="wrap">
-            <div class="bh sh" style="max-width:none">
+            <div class="bh sh"
+                style="max-width:none; display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap;">
                 <div class="rv">
                     <h2>Export guides and trade insights</h2><span class="ar">رؤى تجارية</span>
                 </div><a href="blog.php" class="btn o">All articles</a>
             </div>
-            <div class="bg3">
+            <div class="bg3"
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 26px; margin-top: 30px;">
                 <?php foreach ($Bl as $b):
                 $bi = img($b['image'], 'blogs', un('photo-1596040033229-a9821ebd058d'));
                 $ex = txt($b['meta_desc'], 130) ?: txt($b['description'], 130);
                 $u = 'blog-details.php?slug=' . urlencode($b['slug']); ?>
-                <article class="bl rv">
-                    <a class="im" href="<?= e($u) ?>"><img src="<?= e($bi) ?>" alt="<?= e($b['title']) ?>"
-                            loading="lazy"></a>
-                    <small><span><?= e(date('d M Y', strtotime($b['created_at'] ?: 'now'))) ?></span><span><?= e($b['author']) ?></span></small>
-                    <h3><a href="<?= e($u) ?>"><?= e($b['title']) ?></a></h3>
-                    <p><?= e($ex) ?></p>
-                    <a class="rd" href="<?= e($u) ?>">Read the guide</a>
+                <article class="bl rv" style="display: flex; flex-direction: column;">
+                    <a class="im" href="<?= e($u) ?>"
+                        style="overflow: hidden; border-radius: var(--r); margin-bottom: 18px;"><img src="<?= e($bi) ?>"
+                            alt="<?= e($b['title']) ?>" loading="lazy"
+                            style="width: 100%; aspect-ratio: 16/10; object-fit: cover;"></a>
+                    <small
+                        style="color: var(--mut); display: flex; gap: 16px; font-size: .82rem;"><span><?= e(date('d M Y', strtotime($b['created_at'] ?: 'now'))) ?></span><span><?= e($b['author']) ?></span></small>
+                    <h3 style="font-size: 1.28rem; margin: 8px 0 10px;"><a href="<?= e($u) ?>"><?= e($b['title']) ?></a>
+                    </h3>
+                    <p style="color: var(--mut); font-size: .93rem; margin-bottom: 12px;"><?= e($ex) ?></p>
+                    <a class="rd" href="<?= e($u) ?>"
+                        style="margin-top: auto; font-weight: 600; color: var(--bronze); font-size: .9rem;">Read the
+                        guide</a>
                 </article>
                 <?php endforeach; ?>
             </div>
@@ -1435,44 +1464,72 @@ $C = [
     </section>
     <?php endif; ?>
 
-    <section class="rq" id="rfq">
-        <div class="wrap rg">
+    <section class="rq" id="rfq" style="background: linear-gradient(var(--paper), var(--sand));">
+        <div class="wrap rg"
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: clamp(32px, 6vw, 80px); align-items: start;">
             <div class="rv">
-                <h2>Request a custom FOB or CIF quotation</h2><span class="ar" style="display:block;margin-top:8px">اطلب
-                    عرض سعر</span>
-                <p>Tell us the commodity, grade, packing and destination port. Our export team replies with a formal
-                    proforma within 4 business hours.</p>
-                <ul class="pts">
-                    <li><b>Samples by DHL or FedEx</b>Representative samples before you commit.</li>
-                    <li><b>Third-party inspection</b>SGS or Geo-Chem checks before loading.</li>
-                    <li><b>Labels in Arabic, English and French</b>Private labelling on request.</li>
-                    <li><b>Safe payment terms</b>Irrevocable L/C, TT or CAD.</li>
+                <h2 style="font-size: clamp(1.9rem, 3.4vw, 2.7rem);">Request a custom FOB or CIF quotation</h2><span
+                    class="ar" style="display:block;margin-top:8px">اطلب عرض سعر</span>
+                <p style="color: var(--mut); margin: 12px 0 22px;">Tell us the commodity, grade, packing and destination
+                    port. Our export team replies with a formal proforma within 4 business hours.</p>
+                <ul class="pts" style="display: grid; grid-template-columns: 1fr; gap: 18px; margin: 22px 0 30px;">
+                    <li style="padding-left: 20px; position: relative; font-size: .92rem; color: var(--mut);"><b
+                            style="display: block; color: var(--ink);">Samples by DHL or FedEx</b>Representative samples
+                        before you commit.</li>
+                    <li style="padding-left: 20px; position: relative; font-size: .92rem; color: var(--mut);"><b
+                            style="display: block; color: var(--ink);">Third-party inspection</b>SGS or Geo-Chem checks
+                        before loading.</li>
+                    <li style="padding-left: 20px; position: relative; font-size: .92rem; color: var(--mut);"><b
+                            style="display: block; color: var(--ink);">Labels in Arabic, English and French</b>Private
+                        labelling on request.</li>
                 </ul>
             </div>
-            <form class="fm rv" action="contact.php" method="POST">
-                <h3 class="w">Bulk import / export inquiry</h3>
-                <div><label for="n">Contact person *</label><input id="n" name="name" placeholder="Ahmed Al-Mazrouei"
-                        required></div>
-                <div><label for="c">Company *</label><input id="c" name="company"
-                        placeholder="Gulf Horizon Foodstuff LLC" required></div>
-                <div><label for="m">Business email *</label><input id="m" type="email" name="email"
-                        placeholder="import@company.com" required></div>
-                <div><label for="ph">WhatsApp / phone *</label><input id="ph" type="tel" name="phone"
-                        placeholder="+971 50 123 4567" required></div>
-                <div><label for="pi">Product *</label><input id="pi" name="subject"
-                        placeholder="W240 cashews, red chilli..." required></div>
-                <div><label for="q">Order volume</label><select id="q" name="quantity">
+            <form class="fm rv" action="contact.php" method="POST"
+                style="background: #fff; border: 1px solid var(--line); border-top: 3px solid var(--gold); border-radius: var(--r); padding: clamp(24px, 4vw, 44px); display: grid; grid-template-columns: 1fr 1fr; gap: 16px; box-shadow: 0 24px 60px rgba(18, 35, 42, .08);">
+                <h3 class="w" style="grid-column: 1/-1; font-size: 1.4rem;">Bulk import / export inquiry</h3>
+                <div><label style="display: block; font-size: .82rem; font-weight: 600; margin-bottom: 6px;">Contact
+                        person *</label><input
+                        style="width: 100%; font: inherit; padding: .8rem .95rem; border: 1px solid var(--line); border-radius: var(--r); background: var(--paper); color: var(--ink);"
+                        name="name" placeholder="Ahmed Al-Mazrouei" required></div>
+                <div><label style="display: block; font-size: .82rem; font-weight: 600; margin-bottom: 6px;">Company
+                        *</label><input
+                        style="width: 100%; font: inherit; padding: .8rem .95rem; border: 1px solid var(--line); border-radius: var(--r); background: var(--paper); color: var(--ink);"
+                        name="company" placeholder="Gulf Horizon Foodstuff LLC" required></div>
+                <div><label style="display: block; font-size: .82rem; font-weight: 600; margin-bottom: 6px;">Business
+                        email *</label><input
+                        style="width: 100%; font: inherit; padding: .8rem .95rem; border: 1px solid var(--line); border-radius: var(--r); background: var(--paper); color: var(--ink);"
+                        type="email" name="email" placeholder="import@company.com" required></div>
+                <div><label style="display: block; font-size: .82rem; font-weight: 600; margin-bottom: 6px;">WhatsApp /
+                        phone *</label><input
+                        style="width: 100%; font: inherit; padding: .8rem .95rem; border: 1px solid var(--line); border-radius: var(--r); background: var(--paper); color: var(--ink);"
+                        type="tel" name="phone" placeholder="+971 50 123 4567" required></div>
+                <div><label style="display: block; font-size: .82rem; font-weight: 600; margin-bottom: 6px;">Product
+                        *</label><input
+                        style="width: 100%; font: inherit; padding: .8rem .95rem; border: 1px solid var(--line); border-radius: var(--r); background: var(--paper); color: var(--ink);"
+                        id="pi" name="subject" placeholder="W240 cashews, red chilli..." required></div>
+                <div><label style="display: block; font-size: .82rem; font-weight: 600; margin-bottom: 6px;">Order
+                        volume</label><select
+                        style="width: 100%; font: inherit; padding: .8rem .95rem; border: 1px solid var(--line); border-radius: var(--r); background: var(--paper); color: var(--ink);"
+                        name="quantity">
                         <option>1 x 20ft FCL container</option>
                         <option>1 x 40ft FCL container</option>
                         <option>LCL / trial bulk (1 - 5 MT)</option>
-                        <option>Monthly contract supply</option>
                     </select></div>
-                <div class="w"><label for="d">Destination port and country</label><input id="d" name="destination"
-                        placeholder="Jebel Ali, UAE / Mombasa, Kenya"></div>
-                <div class="w"><label for="ms">Specifications *</label><textarea id="ms" name="message" rows="3"
+                <div class="w" style="grid-column: 1/-1;"><label
+                        style="display: block; font-size: .82rem; font-weight: 600; margin-bottom: 6px;">Destination
+                        port and country</label><input
+                        style="width: 100%; font: inherit; padding: .8rem .95rem; border: 1px solid var(--line); border-radius: var(--r); background: var(--paper); color: var(--ink);"
+                        name="destination" placeholder="Jebel Ali, UAE / Mombasa, Kenya"></div>
+                <div class="w" style="grid-column: 1/-1;"><label
+                        style="display: block; font-size: .82rem; font-weight: 600; margin-bottom: 6px;">Specifications
+                        *</label><textarea
+                        style="width: 100%; font: inherit; padding: .8rem .95rem; border: 1px solid var(--line); border-radius: var(--r); background: var(--paper); color: var(--ink);"
+                        name="message" rows="3"
                         placeholder="Grade, moisture limit, bag size (10 / 25 / 50 kg), Incoterm..."
                         required></textarea></div>
-                <div class="w"><button type="submit" class="btn">Request proforma quotation</button></div>
+                <div class="w" style="grid-column: 1/-1;"><button type="submit" class="btn"
+                        style="width: 100%; justify-content: center; padding: 1rem;">Request proforma quotation</button>
+                </div>
             </form>
         </div>
     </section>

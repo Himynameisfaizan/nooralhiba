@@ -763,15 +763,13 @@ $nav = ['index.php#home' => 'Home', 'about.php' => 'About', 'products.php' => 'P
 <body>
 
     <!-- Header -->
-    <?php include 'includes/header.php'; ?>
-
-    <!-- Inner Hero -->
-    <section class="inner-hero">
-        <div class="wrap rv">
-            <h1>Export Catalogue</h1>
-            <p>Premium wholesale spices, dry fruits, and agro commodities ready for global dispatch.</p>
-        </div>
-    </section>
+    <?php 
+    
+    include 'includes/header.php'; 
+    $pageTitle = 'Export Catalogue';
+    
+    include 'includes/breadcrumb.php';
+    ?>
 
     <!-- Product Section -->
     <div class="wrap prod-layout">

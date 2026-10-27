@@ -1263,12 +1263,11 @@ $C = [
     <section class="hero dk" id="home">
         <div class="wrap">
             <div class="in">
-                <div class="greet"><span class="ar">أهلاً وسهلاً</span><span>Karibu</span><span>Bienvenue</span>
-                </div>
+                <div class="greet"><span class="ar">أهلاً وسهلاً</span><span>Karibu</span><span>Bienvenue</span></div>
                 <h1>From Dubai to the ports of Africa, trade you can rely on</h1>
                 <p>Noor Al Hiba Trading LLC sources, grades and ships export-quality spices, dry fruits and agro
                     commodities to importers across the Gulf, East Africa and West Africa.</p>
-                <div class="cta"><a href="#products" class="btn g">View export catalogue</a><a href="#rfq"
+                <div class="cta"><a href="products.php" class="btn g">View export catalogue</a><a href="#rfq"
                         class="btn o">Get FOB / CIF pricing</a></div>
             </div>
             <div class="arch">
@@ -1288,7 +1287,6 @@ $C = [
             </div>
         </div>
     </section>
-
     <section id="about">
         <div class="wrap ab">
             <div class="fr rv"><img src="<?= e($about_i) ?>" alt="Noor Al Hiba warehouse and export operations"
@@ -1297,20 +1295,16 @@ $C = [
                 <span class="ar">من نحن</span>
                 <h2><?= e($about_t) ?></h2>
                 <?php if ($about_c): ?><p><?= e(mb_strimwidth($about_c, 0, 520, '...')) ?></p><?php else: ?>
-                <p>We process, source and export premium whole spices, dry fruits, nuts and seeds to
-                    wholesalers,
-                    supermarket chains and food manufacturers in the UAE, the wider GCC, and across East and
-                    West
+                <p>We process, source and export premium whole spices, dry fruits, nuts and seeds to wholesalers,
+                    supermarket chains and food manufacturers in the UAE, the wider GCC, and across East and West
                     Africa.</p>
-                <p>Every shipment follows the same standard: lab-tested quality, clear trade documents and
-                    containers
+                <p>Every shipment follows the same standard: lab-tested quality, clear trade documents and containers
                     that leave on the date we promise.</p><?php endif; ?>
                 <ul class="pts">
                     <li><b>Direct origin sourcing</b>Bought from certified farms and processing hubs.</li>
-                    <li><b>Gulf and Africa compliant</b>Dubai Municipality, SFDA, KEBS, NAFDAC and EU norms.
-                    </li>
+                    <li><b>Gulf and Africa compliant</b>Dubai Municipality, SFDA, KEBS, NAFDAC and EU norms.</li>
                 </ul>
-                <a href="#rfq" class="btn">Partner with us</a>
+                <a href="about.php" class="btn">Partner with us</a>
             </div>
         </div>
     </section>
@@ -1319,18 +1313,23 @@ $C = [
         <div class="wrap">
             <div class="sh c rv">
                 <h2>Export-grade commodities</h2><span class="ar">منتجات التصدير</span>
-                <p>Sorted, graded and packed in moisture-locked bulk packaging for wholesalers, supermarkets and
-                    food
+                <p>Sorted, graded and packed in moisture-locked bulk packaging for wholesalers, supermarkets and food
                     processors.</p>
             </div>
             <div class="pg">
                 <?php foreach ($P as $p): ?>
                 <article class="pc rv">
-                    <div class="im"><img src="<?= e($p[3]) ?>" alt="<?= e($p[0]) ?>" loading="lazy"></div>
+                    <div class="im">
+                        <a href="product-details.php?slug=<?= e($p[4]) ?>">
+                            <img src="<?= e($p[3]) ?>" alt="<?= e($p[0]) ?>" loading="lazy">
+                        </a>
+                    </div>
                     <small><?= e($p[1]) ?></small>
-                    <h3><?= e($p[0]) ?></h3>
+                    <h3><a href="product-details.php?slug=<?= e($p[4]) ?>"><?= e($p[0]) ?></a></h3>
                     <p><?= e(mb_strimwidth($p[2], 0, 100, '...')) ?></p>
-                    <button type="button" data-p="<?= e($p[0]) ?>">Request bulk price</button>
+                    <button type="button"
+                        onclick="document.getElementById('pi').value='<?= e($p[0]) ?>'; document.getElementById('rfq').scrollIntoView({behavior: 'smooth'}); setTimeout(()=>document.getElementById('pi').focus(),700);">Request
+                        bulk price</button>
                 </article>
                 <?php endforeach; ?>
             </div>
@@ -1341,8 +1340,7 @@ $C = [
         <div class="wrap">
             <div class="sh rv">
                 <h2>Complete import and export services</h2><span class="ar">خدمات التجارة</span>
-                <p>From farm-level buying and lab testing to container loading and customs clearance at Dubai
-                    and
+                <p>From farm-level buying and lab testing to container loading and customs clearance at Dubai and
                     African ports.</p>
             </div>
             <div class="sg">
@@ -1361,8 +1359,7 @@ $C = [
         <div class="wrap">
             <div class="sh rv">
                 <h2>Trade routes across the Gulf and Africa</h2><span class="ar">ممرات التجارة</span>
-                <p>Dedicated shipping-line contracts keep your cargo fresh, intact and fully documented from
-                    loading to
+                <p>Dedicated shipping-line contracts keep your cargo fresh, intact and fully documented from loading to
                     discharge.</p>
             </div>
             <div class="cg">
@@ -1421,9 +1418,9 @@ $C = [
             </div>
             <div class="bg3">
                 <?php foreach ($Bl as $b):
-                        $bi = img($b['image'], 'blogs', un('photo-1596040033229-a9821ebd058d'));
-                        $ex = txt($b['meta_desc'], 130) ?: txt($b['description'], 130);
-                        $u = 'blog-details.php?slug=' . urlencode($b['slug']); ?>
+                $bi = img($b['image'], 'blogs', un('photo-1596040033229-a9821ebd058d'));
+                $ex = txt($b['meta_desc'], 130) ?: txt($b['description'], 130);
+                $u = 'blog-details.php?slug=' . urlencode($b['slug']); ?>
                 <article class="bl rv">
                     <a class="im" href="<?= e($u) ?>"><img src="<?= e($bi) ?>" alt="<?= e($b['title']) ?>"
                             loading="lazy"></a>
@@ -1443,8 +1440,7 @@ $C = [
             <div class="rv">
                 <h2>Request a custom FOB or CIF quotation</h2><span class="ar" style="display:block;margin-top:8px">اطلب
                     عرض سعر</span>
-                <p>Tell us the commodity, grade, packing and destination port. Our export team replies with a
-                    formal
+                <p>Tell us the commodity, grade, packing and destination port. Our export team replies with a formal
                     proforma within 4 business hours.</p>
                 <ul class="pts">
                     <li><b>Samples by DHL or FedEx</b>Representative samples before you commit.</li>
@@ -1482,44 +1478,7 @@ $C = [
     </section>
 
     <div class="band"></div>
-    <footer class="dk">
-        <div class="wrap">
-            <div class="fg">
-                <div>
-                    <a class="brand" href="index.php" style="color:var(--gold)"><?= mark(44) ?><span><b>NOOR AL
-                                HIBA</b><small>TRADING LLC</small></span></a>
-                    <p>An international import-export house connecting spices, dry fruits, oil seeds and agro
-                        commodities with buyers in Dubai, the Middle East and Africa.</p>
-                </div>
-                <div>
-                    <h4>Navigate</h4>
-                    <ul><?php foreach ($nav as $id => $l): ?><li><a href="#<?= $id ?>"><?= $l ?></a></li>
-                        <?php endforeach; ?></ul>
-                </div>
-                <div>
-                    <h4>Key export lines</h4>
-                    <ul>
-                        <li>Whole spices: chilli, pepper</li>
-                        <li>Cashew W180, W240, W320</li>
-                        <li>Almonds, pistachios, raisins</li>
-                        <li>Cumin and coriander seeds</li>
-                        <li>Saffron and cardamom</li>
-                    </ul>
-                </div>
-                <div>
-                    <h4>Trade desk</h4>
-                    <ul>
-                        <li>Dubai, UAE</li>
-                        <li>Azadpur, Delhi, India</li>
-                        <li><a href="mailto:<?= e($mail) ?>"><?= e($mail) ?></a></li>
-                        <li>Mon to Sat, 9:00 to 19:00 (GST)</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="fb"><span>© <?= date('Y') ?> Noor Al Hiba Trading LLC. All rights reserved.</span><span
-                    class="ar">نور الهبة للتجارة ذ.م.م</span></div>
-        </div>
-    </footer>
+    <?php include 'includes/footer.php' ?>
 
     <a class="wa" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"
         href="https://wa.me/<?= e($wa) ?>?text=Hello%20Noor%20Al%20Hiba%2C%20we%20have%20a%20bulk%20import-export%20inquiry.">

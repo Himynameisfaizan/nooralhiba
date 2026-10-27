@@ -619,16 +619,20 @@ $nav = ['index.php#home' => 'Home', 'about.php' => 'About', 'index.php#products'
 <body>
 
     <!-- Header -->
-    <?php include 'includes/header.php'?>
+    <?php 
+    include 'includes/header.php';
+    $pageTitle = 'Our Story & Legacy';
+    include 'includes/breadcrumb.php';
+    ?>
 
     <!-- Inner Hero Section -->
-    <section class="dk inner-hero">
+    <!-- <section class="dk inner-hero">
         <div class="wrap rv">
             <span class="ar" style="font-size: 1.2rem; display:block; margin-bottom:10px;">عن الشركة</span>
             <h1>Our Story & Legacy</h1>
             <p>Exporting the finest Agro-Commodities from the heart of Dubai to the thriving markets of Africa.</p>
         </div>
-    </section>
+    </section> -->
 
     <!-- Main About Section (Dynamic DB + Fallback) -->
     <section id="about-us">

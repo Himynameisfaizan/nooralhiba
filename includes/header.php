@@ -9,13 +9,13 @@ mysqli_report(MYSQLI_REPORT_OFF);
 $wa = '971500000000';
 $mail = 'export@nooralhibatrading.com';
 
-// Aapki config/connect.php file include karein
+// 1. Database Connection (Config file se)
 require_once __DIR__ . '/../config/connect.php';
 
 // Check connection status
 $ok = isset($conn) && !$conn->connect_error;
 
-// Functions
+// 2. Global Functions (Prevent Cannot redeclare error)
 if (!function_exists('q')) {
     function q($sql) {
         global $conn, $ok;
@@ -36,12 +36,20 @@ if (!function_exists('txt')) {
 }
 if (!function_exists('img')) {
     function img($f, $d, $fb) {
+        global $site;
         $f = trim((string)$f);
         if ($f === '') return $fb;
         if (preg_match('#^https?://#', $f)) return $f;
+        
         $c = ltrim($f, '/');
         $b = basename($c);
-        foreach ([$c, "admin/$c", "uploads/$d/$b", "admin/uploads/$d/$b", "assets/img/uploads/$d/$b", "assets/images/$b"] as $p) if (is_file($p)) return $p;
+        $base_url = $site ?? "http://localhost/projects/nooralhiba/"; 
+        $doc_root = $_SERVER['DOCUMENT_ROOT'] . "/projects/nooralhiba/";
+        
+        $possible_paths = [$c, "admin/" . $c, "uploads/$d/$b", "admin/uploads/$d/$b", "assets/img/uploads/$d/$b", "assets/images/$b"];
+        foreach ($possible_paths as $p) {
+            if (is_file($doc_root . $p)) return $base_url . $p;
+        }
         return $fb;
     }
 }
@@ -54,7 +62,7 @@ if (!function_exists('mark')) {
     }
 }
 
-// Fetch Categories for Dropdown
+// 3. Fetch Categories for Dropdown
 $nav_cats = [];
 if ($ok) {
     $db_cats = q("SELECT id, category_name, slug FROM categories WHERE status=1");
@@ -65,17 +73,45 @@ if ($ok) {
         }
     }
 }
-// Fallback if DB empty
 if (empty($nav_cats)) {
     $nav_cats = [
         'dry-fruits' => ['name' => 'Dry Fruits & Nuts', 'subs' => [['subcat_name'=>'Almonds','slug'=>'almonds'], ['subcat_name'=>'Cashews','slug'=>'cashews']]],
-        'whole-spices' => ['name' => 'Whole Spices', 'subs' => [['subcat_name'=>'Red Chilli','slug'=>'red-chilli'], ['subcat_name'=>'Cardamom','slug'=>'cardamom']]],
-        'oil-seeds' => ['name' => 'Oil Seeds', 'subs' => [['subcat_name'=>'Cumin Seeds','slug'=>'cumin-seeds']]]
+        'whole-spices' => ['name' => 'Whole Spices', 'subs' => [['subcat_name'=>'Red Chilli','slug'=>'red-chilli'], ['subcat_name'=>'Cardamom','slug'=>'cardamom']]]
     ];
 }
 
-$page_title = $page_title ?? 'Noor Al Hiba Trading LLC | Import & Export from Dubai to Africa';
-$page_desc = $page_desc ?? 'Export-grade spices, dry fruits and agro commodities to importers across Dubai, GCC and Africa.';
+// 4. Dynamic SEO & Schema Engine
+$current_page_name = basename($_SERVER['PHP_SELF']);
+
+// Agar product/blog page ne apna khud ka meta set nahi kiya hai, tabhi global table se fetch karein
+if (!isset($meta_title) || empty($meta_title)) {
+    $meta_title = 'Noor Al Hiba Trading LLC | Import & Export from Dubai to Africa';
+    $meta_desc = 'Export-grade spices, dry fruits and agro commodities to importers across Dubai, GCC and Africa.';
+    $meta_key = 'import export dubai, spices wholesale, dry fruits supplier africa';
+    $schema = '';
+
+    if ($ok) {
+        // Table name 'meta_and_page_schema' as requested
+        $seo_data = q("SELECT meta_title, meta_desc, meta_keyword, schema_markup FROM meta_and_page_schema WHERE page_name = '" . $conn->real_escape_string($current_page_name) . "' LIMIT 1");
+        
+        if (!empty($seo_data)) {
+            $meta_title = !empty($seo_data[0]['meta_title']) ? $seo_data[0]['meta_title'] : $meta_title;
+            $meta_desc = !empty($seo_data[0]['meta_desc']) ? $seo_data[0]['meta_desc'] : $meta_desc;
+            $meta_key = !empty($seo_data[0]['meta_keyword']) ? $seo_data[0]['meta_keyword'] : $meta_key;
+            $schema = !empty($seo_data[0]['schema_markup']) ? $seo_data[0]['schema_markup'] : '';
+        }
+    }
+}
+
+// Ensure variables exist to prevent warnings
+$meta_title = $meta_title ?? 'Noor Al Hiba Trading LLC';
+$meta_desc = $meta_desc ?? '';
+$meta_key = $meta_key ?? '';
+$schema = $schema ?? '';
+
+// Generate Canonical URL dynamically
+$protocol = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+$canonical_url = $protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -83,8 +119,16 @@ $page_desc = $page_desc ?? 'Export-grade spices, dry fruits and agro commodities
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= e($page_title) ?></title>
-    <meta name="description" content="<?= e($page_desc) ?>">
+
+    <!-- Dynamic SEO & Meta Tags -->
+    <title><?= e($meta_title) ?></title>
+    <meta name="description" content="<?= e($meta_desc) ?>">
+    <meta name="keywords" content="<?= e($meta_key) ?>">
+    <link rel="canonical" href="<?= e($canonical_url) ?>">
+
+    <!-- Dynamic Schema Markup -->
+    <?php if (!empty($schema)) { echo $schema; } ?>
+
     <link rel="icon" href="1.png">
 
     <!-- Fonts -->
@@ -264,7 +308,6 @@ $page_desc = $page_desc ?? 'Export-grade spices, dry fruits and agro commodities
         font-weight: 600;
     }
 
-    /* Navigation layout fix */
     nav {
         display: flex;
         align-items: center;
@@ -307,7 +350,7 @@ $page_desc = $page_desc ?? 'Export-grade spices, dry fruits and agro commodities
         width: 100%;
     }
 
-    /* Dropdown Structure Fix */
+    /* Dropdown Structure */
     .dropdown-menu {
         position: absolute;
         top: 100%;
@@ -356,7 +399,7 @@ $page_desc = $page_desc ?? 'Export-grade spices, dry fruits and agro commodities
         color: var(--bronze);
     }
 
-    /* Nested Dropdown (Subcategories) */
+    /* Nested Dropdown */
     .sub-dropdown-menu {
         position: absolute;
         top: 0;
@@ -386,7 +429,6 @@ $page_desc = $page_desc ?? 'Export-grade spices, dry fruits and agro commodities
         width: 100%;
     }
 
-    /* Mobile Menu Toggle */
     .tg {
         display: none;
         background: 0;
@@ -432,7 +474,6 @@ $page_desc = $page_desc ?? 'Export-grade spices, dry fruits and agro commodities
             display: block;
         }
 
-        /* Mobile nav layout */
         nav {
             position: absolute;
             top: 100%;
@@ -477,7 +518,6 @@ $page_desc = $page_desc ?? 'Export-grade spices, dry fruits and agro commodities
             display: none;
         }
 
-        /* Mobile Dropdown resets */
         .dropdown-menu,
         .sub-dropdown-menu {
             position: static;
@@ -566,7 +606,6 @@ $page_desc = $page_desc ?? 'Export-grade spices, dry fruits and agro commodities
                     <li><a href="index.php">Home</a></li>
                     <li><a href="about.php">About</a></li>
 
-                    <!-- Products Dropdown -->
                     <li class="has-dropdown">
                         <a href="products.php">
                             Products
@@ -591,7 +630,6 @@ $page_desc = $page_desc ?? 'Export-grade spices, dry fruits and agro commodities
                                     <?php endif; ?>
                                 </a>
 
-                                <!-- Subcategories -->
                                 <?php if(!empty($cData['subs'])): ?>
                                 <ul class="sub-dropdown-menu">
                                     <?php foreach ($cData['subs'] as $sub): ?>

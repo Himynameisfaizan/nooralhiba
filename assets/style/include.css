@@ -1,0 +1,426 @@
+/* =====================================
+   TOPBAR STYLING
+   ===================================== */
+.topbar {
+  background-color: #711b3c; /* Brand Maroon */
+  color: #ffffff;
+  font-size: 0.9rem;
+}
+
+.topbar a {
+  color: #ffffff;
+  text-decoration: none;
+  transition: opacity 0.3s ease;
+}
+
+.topbar a:hover {
+  opacity: 0.8;
+}
+
+.topbar-right a {
+  display: inline-block;
+  margin-left: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  text-align: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.topbar-right a:hover {
+  background: #ffffff;
+  color: #711b3c;
+  transform: translateY(-2px);
+}
+
+/* =====================================
+   NAVBAR STYLING
+   ===================================== */
+.custom-navbar {
+  background-color: #ffffff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  padding: 10px 0;
+  z-index: 1030;
+}
+
+/* Logo Animation */
+.logo-animate {
+  transition: transform 0.3s ease;
+}
+.logo-animate:hover {
+  transform: scale(1.03);
+}
+
+/* Navigation Links */
+.custom-navbar .nav-link {
+  color: #222222 !important; /* Brand Charcoal */
+  font-weight: 600;
+  font-size: 16px;
+  margin: 0 12px;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+/* Hover & Active State (Maroon Highlight) */
+.custom-navbar .nav-link:hover,
+.custom-navbar .nav-link.active {
+  color: #711b3c !important; /* Brand Maroon */
+}
+
+/* Smooth Bottom Border Animation */
+.custom-navbar .nav-link::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 3px;
+  bottom: -5px;
+  left: 0;
+  background-color: #711b3c;
+  transition: width 0.3s ease;
+  border-radius: 2px;
+}
+
+.custom-navbar .nav-link:hover::after,
+.custom-navbar .nav-link.active::after {
+  width: 100%;
+}
+
+/* Dropdown Hover Logic for Desktop */
+@media all and (min-width: 992px) {
+  .custom-navbar .dropdown-menu {
+    display: none;
+    margin-top: 0;
+    border-radius: 8px;
+    padding: 10px 0;
+  }
+  .custom-navbar .dropdown:hover .dropdown-menu {
+    display: block;
+    animation: fadeDropdown 0.3s ease forwards;
+  }
+}
+
+@keyframes fadeDropdown {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-item {
+  font-weight: 500;
+  padding: 8px 20px;
+  color: #444;
+  transition: all 0.2s;
+}
+
+.dropdown-item:hover,
+.active-dropdown-item {
+  background-color: rgba(113, 27, 60, 0.05);
+  color: #711b3c !important;
+  font-weight: 700;
+  padding-left: 25px; /* Slight indent on hover/active */
+}
+
+/* Premium Call to Action Button */
+.btn-quote {
+  background-color: #711b3c;
+  color: white;
+  border-radius: 30px;
+  padding: 8px 24px;
+  font-weight: 600;
+  border: 2px solid #711b3c;
+  transition: all 0.3s ease;
+}
+.btn-quote:hover {
+  background-color: transparent;
+  color: #711b3c;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(113, 27, 60, 0.2);
+}
+
+/* Mobile specific adjustments */
+@media (max-width: 991px) {
+  .custom-navbar .nav-link::after {
+    display: none; /* Mobile mein underline hide */
+  }
+  .nav-item {
+    margin-bottom: 5px;
+    padding-left: 10px;
+  }
+  .custom-navbar {
+    padding: 15px 0;
+  }
+  /* Ensure mobile toggler outline is removed */
+  .navbar-toggler:focus {
+    box-shadow: none;
+  }
+}
+/* ==============================
+       BREADCRUMB SECTION STYLING
+       ============================== */
+.breadcrumb-wrapper {
+  background:
+    linear-gradient(rgba(113, 27, 60, 0.9), rgba(34, 34, 34, 0.95)), /* Maroon to Charcoal Gradient */
+    url("https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=2000&auto=format&fit=crop")
+      center center / cover no-repeat fixed;
+  padding: 100px 0 80px 0;
+  text-align: center;
+  color: #ffffff;
+  position: relative;
+  margin-top: 0;
+  border-bottom: 4px solid #711b3c; /* Maroon border at bottom for premium feel */
+}
+
+.breadcrumb-title {
+  font-family: inherit; /* Website ki default premium font lega */
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  margin-bottom: 15px;
+  text-transform: capitalize;
+  animation: slideDown 0.8s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+.custom-breadcrumb {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 500;
+  animation: slideUp 0.8s cubic-bezier(0.25, 0.8, 0.25, 1) 0.2s forwards;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.custom-breadcrumb li {
+  display: inline-flex;
+  align-items: center;
+}
+
+.custom-breadcrumb li a {
+  color: rgba(255, 255, 255, 0.7); /* Slightly faded white for inactive link */
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.custom-breadcrumb li a:hover {
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(255,255,255,0.3);
+}
+
+.custom-breadcrumb li i {
+  margin-right: 6px;
+}
+
+.custom-breadcrumb li + li::before {
+  content: "\276F"; /* Right-pointing angle quotation mark */
+  padding: 0 12px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.9rem;
+}
+
+.custom-breadcrumb li.active {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+@keyframes slideDown {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes slideUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+  .breadcrumb-wrapper {
+    padding: 80px 0 60px 0;
+  }
+  .breadcrumb-title {
+    font-size: 2.2rem;
+  }
+  .custom-breadcrumb {
+    font-size: 0.95rem;
+  }
+}
+.custom-footer {
+    background-color: #151515;
+    color: #e0e0e0;
+    font-family: "Inter", sans-serif;
+    width: 100%;
+    overflow-wrap: break-word;
+}
+
+.custom-footer > .container-wide {
+    width: 100%;
+    max-width: 1440px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 24px;
+    padding-right: 24px;
+}
+
+.footer-heading {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1.15rem;
+  position: relative;
+  padding-bottom: 12px;
+  margin-bottom: 25px;
+}
+
+.footer-heading::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 45px;
+  height: 3px;
+  background-color: #711b3c; /* Brand Maroon */
+  border-radius: 2px;
+}
+
+.footer-text {
+  color: #a9a9a9 !important; /* Light Grey for visibility */
+  line-height: 1.7;
+  font-size: 0.95rem;
+}
+
+.footer-links li {
+  margin-bottom: 12px;
+}
+
+.footer-links a {
+  color: #a9a9a9 !important;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+
+.footer-links a:hover {
+  color: #ffffff !important;
+  transform: translateX(5px);
+}
+
+.footer-contact-icon {
+  width: 35px;
+  height: 35px;
+  background-color: rgba(113, 27, 60, 0.15); /* Soft maroon bg */
+  color: #df6e97; /* Lighter maroon for dark bg contrast */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  margin-right: 15px;
+}
+
+.footer-social a {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #fff;
+  text-decoration: none;
+  transition: transform 0.3s ease;
+}
+
+.footer-social a:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.floating-contact {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  z-index: 9999;
+}
+
+/* Common Button Styling */
+.float-btn {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 1.5rem;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+/* Hover effect */
+.float-btn:hover {
+  transform: scale(1.1);
+  color: #ffffff;
+}
+
+/* WhatsApp Specific Styling */
+.float-whatsapp {
+  background-color: #25d366;
+}
+
+.float-whatsapp:hover {
+  background-color: #20b858;
+}
+
+/* Phone Specific Styling (Using Brand Maroon) */
+.float-phone {
+  background-color: #711b3c;
+}
+
+.float-phone:hover {
+  background-color: #5a152f;
+}
+
+/* Optional Pulse Animation for WhatsApp to grab attention */
+.float-whatsapp {
+  animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 15px rgba(37, 211, 102, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
+  }
+}
+
+/* Mobile Responsive adjustments */
+@media (max-width: 768px) {
+  .floating-contact {
+    bottom: 20px;
+    right: 20px;
+    gap: 12px;
+  }
+  .float-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 1.3rem;
+  }
+}

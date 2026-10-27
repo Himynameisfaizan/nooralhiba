@@ -1,0 +1,256 @@
+:root {
+  --primary-green: #2b5e2c;
+  --accent-orange: #e67e22;
+  --bg-light: #f9fafb;
+  --text-dark: #1a1a1a;
+  --text-muted: #666666;
+}
+
+.gallery-page-section {
+  padding: 80px 0 100px 0;
+  background-color: var(--bg-light);
+}
+
+/* Scroll Animation */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.6s ease-out;
+}
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ==============================
+       GALLERY FILTERS (TABS)
+       ============================== */
+.gallery-filters {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 50px;
+}
+
+.filter-btn {
+  background: #ffffff;
+  color: var(--text-dark);
+  border: 1px solid #e0e0e0;
+  padding: 10px 25px;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+}
+
+.filter-btn:hover,
+.filter-btn.active {
+  background: var(--primary-green);
+  color: #ffffff;
+  border-color: var(--primary-green);
+  box-shadow: 0 5px 15px rgba(43, 94, 44, 0.2);
+}
+
+/* ==============================
+       GALLERY GRID (Square Layout)
+       ============================== */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.gallery-item {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 1 / 1; /* Perfect Square boxes */
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  background: #fff;
+}
+
+.gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.gallery-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(43, 94, 44, 0.8); /* Dark Green transparent overlay */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.4s ease;
+}
+
+.gallery-overlay i {
+  color: #ffffff;
+  font-size: 2.5rem;
+  transform: translateY(-20px);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.gallery-overlay span {
+  color: #fff;
+  font-weight: 600;
+  margin-top: 15px;
+  letter-spacing: 1px;
+  transform: translateY(20px);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  opacity: 0;
+}
+
+.gallery-item:hover img {
+  transform: scale(1.1);
+}
+
+.gallery-item:hover .gallery-overlay {
+  opacity: 1;
+}
+
+.gallery-item:hover .gallery-overlay i,
+.gallery-item:hover .gallery-overlay span {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* ==============================
+       LIGHTBOX (Modal for large image)
+       ============================== */
+.k2k-lightbox {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.92);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+}
+
+.k2k-lightbox.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.k2k-lightbox img {
+  max-width: 90%;
+  max-height: 85vh;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  transform: scale(0.8);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.k2k-lightbox.active img {
+  transform: scale(1);
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 30px;
+  right: 40px;
+  color: white;
+  font-size: 40px;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.lightbox-close:hover {
+  color: var(--accent-orange);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ==============================
+       PAGINATION (Reused from Products)
+       ============================== */
+.k2k-pagination {
+  display: flex;
+  justify-content: center;
+  list-style: none;
+  padding: 0;
+  margin: 60px 0 0 0;
+  gap: 8px;
+}
+.k2k-pagination li a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 45px;
+  height: 45px;
+  background: #ffffff;
+  color: var(--text-dark);
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+.k2k-pagination li a:hover {
+  background: var(--accent-orange);
+  color: #ffffff;
+  border-color: var(--accent-orange);
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(230, 126, 34, 0.3);
+}
+.k2k-pagination li.active a {
+  background: var(--primary-green);
+  color: #ffffff;
+  border-color: var(--primary-green);
+  box-shadow: 0 5px 15px rgba(43, 94, 44, 0.3);
+}
+.k2k-pagination li.next a,
+.k2k-pagination li.prev a {
+  width: auto;
+  padding: 0 20px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 991px) {
+  .gallery-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 768px) {
+  .gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+  .gallery-filters {
+    gap: 10px;
+  }
+  .filter-btn {
+    padding: 8px 18px;
+    font-size: 13px;
+  }
+}
+@media (max-width: 480px) {
+  .gallery-grid {
+    grid-template-columns: 1fr;
+  }
+}

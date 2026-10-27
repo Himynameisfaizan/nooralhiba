@@ -1,0 +1,16 @@
+RewriteEngine On
+RewriteBase /projects/bhagirath/
+
+# Sitemap
+RewriteRule ^sitemap\.xml$ sitemap.php [END]
+
+# Custom page clean URL
+RewriteRule ^location/page/([A-Za-z0-9_-]+)/?$ /projects/bhagirath/page.php?slug=$1 [END,QSA,NC]
+
+# Location listing page
+RewriteRule ^location\.php$ - [END,NC]
+
+# Non-existing PHP URLs -> blog details
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([A-Za-z0-9_-]+)\.php$ /projects/bhagirath/blog-details.php?slug=$1 [R=302,L,QSA,NC]

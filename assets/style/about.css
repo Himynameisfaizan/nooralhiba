@@ -1,0 +1,381 @@
+:root {
+  --primary-green: #2b5e2c;
+  --accent-orange: #e67e22;
+  --bg-light: #f9fafb;
+  --text-dark: #1a1a1a;
+  --text-muted: #666666;
+}
+
+/* Scroll Animation */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+}
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ==============================
+       1. ABOUT COMPANY SECTION
+       ============================== */
+.inner-about {
+  padding: 100px 0;
+  background: #ffffff;
+}
+
+.about-image-collage {
+  position: relative;
+}
+
+.about-img-1 {
+  width: 80%;
+  border-radius: 15px;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.about-img-2 {
+  position: absolute;
+  bottom: -30px;
+  right: 0;
+  width: 50%;
+  border: 8px solid #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+}
+
+.sec-subtitle {
+  color: var(--accent-orange);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 14px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.sec-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--primary-green);
+  line-height: 1.2;
+  margin-bottom: 20px;
+}
+
+.about-desc {
+  color: var(--text-muted);
+  line-height: 1.7;
+  font-size: 1.05rem;
+  margin-bottom: 15px;
+}
+
+/* ==============================
+       2. MISSION & VISION SECTION
+       ============================== */
+.mv-section {
+  padding: 80px 0;
+  background: var(--bg-light);
+}
+
+.mv-card {
+  background: #ffffff;
+  padding: 50px 40px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+  height: 100%;
+  border-top: 4px solid transparent;
+  transition: all 0.4s ease;
+}
+
+.mv-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+  border-top-color: var(--accent-orange);
+}
+
+.mv-icon {
+  font-size: 3.5rem;
+  color: var(--primary-green);
+  margin-bottom: 20px;
+}
+
+.mv-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: var(--text-dark);
+}
+
+/* ==============================
+       3. WHY CHOOSE US SECTION
+       ============================== */
+.inner-wcu {
+  padding: 100px 0;
+  background: #ffffff;
+}
+
+.wcu-list-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 30px;
+}
+
+.wcu-list-icon {
+  width: 60px;
+  height: 60px;
+  background: rgba(230, 126, 34, 0.1);
+  color: var(--accent-orange);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-right: 20px;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.wcu-list-item:hover .wcu-list-icon {
+  background: var(--accent-orange);
+  color: #ffffff;
+}
+
+.wcu-list-content h4 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.wcu-list-content p {
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* ==============================
+       4. HOW WE WORK (TIMELINE)
+       ============================== */
+.process-section {
+  padding: 100px 0;
+  background: #17385A;
+  color: #ffffff;
+}
+
+.process-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30px;
+  margin-top: 50px;
+  position: relative;
+}
+
+/* Connecting Line between steps */
+.process-grid::before {
+  content: "";
+  position: absolute;
+  top: 40px;
+  left: 10%;
+  width: 80%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.2);
+  z-index: 1;
+}
+
+.process-step {
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.process-icon {
+  width: 80px;
+  height: 80px;
+  background: #ffffff;
+  color: var(--primary-green);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  margin: 0 auto 20px auto;
+  box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.process-step:hover .process-icon {
+  transform: scale(1.1);
+  color: var(--accent-orange);
+}
+
+.process-step h4 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.process-step p {
+  font-size: 0.95rem;
+  opacity: 0.8;
+}
+
+/* ==============================
+       5. FAQ ACCORDION SECTION
+       ============================== */
+.faq-section {
+  padding: 100px 0;
+  background: var(--bg-light);
+}
+
+.custom-accordion .accordion-item {
+  border: none;
+  margin-bottom: 15px;
+  border-radius: 8px !important;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.03);
+}
+
+.custom-accordion .accordion-button {
+  background: #ffffff;
+  color: var(--text-dark);
+  font-weight: 600;
+  font-size: 1.1rem;
+  padding: 20px 25px;
+  box-shadow: none !important;
+}
+
+.custom-accordion .accordion-button:not(.collapsed) {
+  background: var(--primary-green);
+  color: #ffffff;
+}
+
+.custom-accordion .accordion-button::after {
+  transition: all 0.3s ease;
+}
+
+.custom-accordion .accordion-button:not(.collapsed)::after {
+  filter: brightness(0) invert(1); /* Changes icon to white */
+}
+
+.custom-accordion .accordion-body {
+  background: #ffffff;
+  color: var(--text-muted);
+  line-height: 1.7;
+  padding: 20px 25px;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+  .process-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .process-grid::before {
+    display: none;
+  } /* Hide line on mobile */
+  .about-image-collage {
+    margin-bottom: 50px;
+  }
+}
+@media (max-width: 575px) {
+  .process-grid {
+    grid-template-columns: 1fr;
+  }
+  .sec-title {
+    font-size: 2rem;
+  }
+}
+
+/* ==============================
+       GLOBAL & UTILITY STYLES
+       ============================== */
+:root {
+  --primary-green: #2b5e2c;
+  --accent-orange: #e67e22;
+  --text-dark: #1a1a1a;
+  --text-muted: #666666;
+  --bg-light: #f9fafb;
+}
+
+.section-padding {
+  padding: 100px 0;
+}
+.bg-light-gray {
+  background-color: var(--bg-light);
+}
+
+/* Scroll Reveal Animation */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+}
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Section Headings */
+.sec-subtitle {
+  color: var(--accent-orange);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 14px;
+  display: block;
+  margin-bottom: 10px;
+}
+.sec-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--primary-green);
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+/* ==============================
+       4. FAQ ACCORDION STYLING
+       ============================== */
+.faq-accordion .accordion-item {
+  border: none;
+  border-radius: 12px !important;
+  margin-bottom: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+}
+.faq-accordion .accordion-button {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--text-dark);
+  padding: 20px 25px;
+  background-color: #fff;
+  box-shadow: none;
+}
+.faq-accordion .accordion-button:not(.collapsed) {
+  color: var(--primary-green);
+  background-color: rgba(43, 94, 44, 0.03);
+}
+.faq-accordion .accordion-button::after {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)' viewBox='0 0 16 16' fill='%232B5E2C'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+}
+.faq-accordion .accordion-body {
+  padding: 0 25px 25px 25px;
+  color: var(--text-muted);
+  line-height: 1.7;
+  background-color: rgba(43, 94, 44, 0.03);
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+  .about-image-grid {
+    display: block;
+  }
+  .about-img-2 {
+    display: none;
+  } /* Hide staggered image on mobile */
+  .process-row::after {
+    display: none;
+  } /* Remove connecting line on mobile */
+  .process-step {
+    margin-bottom: 40px;
+  }
+}

@@ -2,10 +2,10 @@
 $page_title = 'Noor Al Hiba Trading LLC | Import & Export from Dubai to Africa';
 $page_desc = 'Export-grade spices, dry fruits and agro commodities to importers across Dubai, GCC and Africa.';
 
-// Sirf ek baar include hoga
+// Ek hi baar header include hoga
 include_once 'includes/header.php';
 
-// ---- Data Fetching ----
+// ---- 1. Hero & About Data ----
 $B = q("SELECT banner_path FROM banners ORDER BY display_order ASC, id DESC LIMIT 1");
 $hero = img($B[0]['banner_path'] ?? '', 'banners', un('photo-1596040033229-a9821ebd058d', 900));
 
@@ -14,44 +14,63 @@ $about_t = txt($A[0]['title'] ?? '') ?: 'A trading partner built for the Gulf an
 $about_c = txt($A[0]['content'] ?? '');
 $about_i = img($A[0]['image_url'] ?? '', 'about_us', un('photo-1586528116311-ad8dd3c8310d', 1000));
 
+// ---- 2. Products Data ----
 $FP = [
     ['Premium California Almonds', 'Dry fruits & nuts', 'Whole kernels, moisture-controlled, carton or vacuum packed for GCC and African wholesale.', 'photo-1508061253366-f7da158b6d46'],
     ['White Cashew Kernels W180 / W240 / W320', 'Dry fruits & nuts', 'Uniformly graded ivory kernels in 10 kg and 20 kg tins or CO2-flushed cartons.', 'photo-1563292769-4e05b684851a'],
     ['Guntur & Byadgi Dry Red Chilli', 'Whole spices', 'High-pungency, deep-colour chillies sorted for global spice processors.', 'photo-1588252303782-cb80119abd6d'],
     ['Bold Green Cardamom 8mm+', 'Whole spices', 'Aromatic deep-green pods sourced direct from estates, ready for retail and bulk.', 'photo-1596040033229-a9821ebd058d']
 ];
-
 $P = [];
-foreach (q("SELECT pro_name, pro_img, is_disabled, slug_url FROM products ORDER BY id DESC LIMIT 8") as $i => $r) {
-    if (!empty($r['is_disabled']) || txt($r['pro_name']) === '') continue;
-    $f = preg_split('/[,|;"]+/', trim(stripslashes((string)$r['pro_img']), '[]" '))[0];
-    $P[] = [txt($r['pro_name']), 'Export grade', 'Graded and packed for GCC and African importers. Ask for FOB or CIF pricing.', img($f, 'products', un($FP[$i % 4][3], 700)), $r['slug_url'] ?? ''];
+if ($ok) {
+    $db_prods = q("SELECT pro_name, pro_img, is_disabled, slug_url FROM products WHERE is_disabled = 0 ORDER BY id DESC LIMIT 8");
+    if (!empty($db_prods)) {
+        foreach ($db_prods as $i => $r) {
+            if (txt($r['pro_name']) === '') continue;
+            $f = preg_split('/[,|;"]+/', trim(stripslashes((string)$r['pro_img']), '[]" '))[0];
+            $P[] = [txt($r['pro_name']), 'Export grade', 'Graded and packed for GCC and African importers. Ask for FOB or CIF pricing.', img($f, 'products', un($FP[$i % 4][3], 700)), $r['slug_url'] ?? ''];
+        }
+    }
 }
-if (count($P) < 4) { $P=[]; foreach ($FP as $x) $P[]=[$x[0], $x[1], $x[2], un($x[3], 700), '']; }
+if (count($P) < 4) {
+    $P = [];
+    foreach ($FP as $x) $P[] = [$x[0], $x[1], $x[2], un($x[3], 700), ''];
+}
 
+// ---- 3. Services Data ----
 $FS = [
     ['Global sourcing and procurement', 'Direct farm-gate and processing-unit buying for authentic origin, fair pricing and year-round bulk availability.'],
     ['Sea and air freight', 'FCL and LCL containers and express air cargo to Jebel Ali, Mombasa, Lagos, Durban and Muscat.'],
     ['Private labelling and packaging', 'Food-grade vacuum packs, tins and 25 kg / 50 kg bags with Arabic, English and French labels.']
 ];
 $S = [];
-foreach (q("SELECT service_name, short_desc FROM services ORDER BY id ASC LIMIT 6") as $r) {
-    $t = txt($r['service_name']); $d = txt($r['short_desc']);
-    if ($t && $d) $S[] = [$t, $d];
+if ($ok) {
+    $db_serv = q("SELECT service_name, short_desc FROM services ORDER BY id ASC LIMIT 6");
+    if (!empty($db_serv)) {
+        foreach ($db_serv as $r) {
+            $t = txt($r['service_name']);
+            $d = txt($r['short_desc']);
+            if ($t && $d) $S[] = [$t, $d];
+        }
+    }
 }
 if (count($S) < 3) $S = $FS;
 
-// ---- GALLERY FIX ----
+// ---- 4. Gallery Data (Fixed) ----
 $G = [];
-global $site;
-$base_url = $site ?? "http://localhost/projects/nooralhiba/";
-
-foreach (q("SELECT image_name, image_path FROM gallery ORDER BY ID DESC LIMIT 6") as $r) {
-    // Force direct path to avoid 'img()' function confusion for gallery
-    $filename = basename($r['image_path']);
-    $exact_gallery_path = $base_url . "admin/uploads/gallery/" . $filename;
-    
-    $G[] = [txt($r['image_name']) ?: 'Export operations', $exact_gallery_path];
+if ($ok) {
+    // Handling multiple possible column names for gallery table
+    $db_gal = q("SELECT * FROM gallery ORDER BY id DESC LIMIT 6");
+    if (!empty($db_gal)) {
+        foreach ($db_gal as $r) {
+            $path = $r['image_path'] ?? $r['image'] ?? $r['img'] ?? '';
+            $name = $r['image_name'] ?? $r['title'] ?? 'Export operations';
+            if ($path) {
+                // Using our powerful img() function to locate the exact path
+                $G[] = [txt($name), img($path, 'gallery', un('photo-1586528116311-ad8dd3c8310d'))];
+            }
+        }
+    }
 }
 if (count($G) < 3) {
     $G = [
@@ -61,19 +80,40 @@ if (count($G) < 3) {
     ];
 }
 
+// ---- 5. Testimonials Data (Fixed & Enhanced) ----
 $T = [];
-foreach (q("SELECT name, designation, client_company, message, rating FROM testimonials WHERE status=1 ORDER BY display_order ASC, test_id DESC LIMIT 6") as $r) {
-    $m = txt($r['message']);
-    if ($m === '') continue;
-    $T[] = [txt($r['name']) ?: 'Importer', trim(txt($r['designation']) . ' ' . txt($r['client_company'])), $m, (int)($r['rating'] ?: 5)];
+if ($ok) {
+    // Fetching exactly as per your table structure
+    $db_test = q("SELECT * FROM testimonials WHERE status=1 ORDER BY display_order ASC, test_id DESC LIMIT 6");
+    if (!empty($db_test)) {
+        foreach ($db_test as $r) {
+            $m = txt($r['message'] ?? '');
+            if ($m === '') continue;
+
+            $name = txt($r['name'] ?? '') ?: 'Importer';
+            $desig = trim(txt($r['designation'] ?? '') . ' ' . txt($r['client_company'] ?? ''));
+            $rating = (int)($r['rating'] ?? 5);
+
+            // Checking if image exists in DB
+            $img_path = !empty($r['image']) ? img($r['image'], 'testimonials', '') : '';
+
+            $T[] = [$name, $desig, $m, $rating, $img_path];
+        }
+    }
 }
 if (count($T) < 2) {
     $T = [
-        ['Tariq Al-Mansoori', 'Procurement Director, Al-Baraka Foodstuff, Dubai', 'Our most dependable supplier for W240 cashews and green cardamom at Jebel Ali. Moisture control, packaging and paperwork are exact every time.', 5]
+        ['Tariq Al-Mansoori', 'Procurement Director, Al-Baraka Foodstuff, Dubai', 'Our most dependable supplier for W240 cashews and green cardamom at Jebel Ali. Moisture control, packaging and paperwork are exact every time.', 5, ''],
+        ['Samuel Ochieng', 'Managing Partner, East Africa Commodities, Mombasa', 'Full containers of spices need strict phytosanitary and SGS compliance. Every shipment left on schedule with no customs delays.', 5, '']
     ];
 }
 
-$Bl = q("SELECT title, slug, author, image, meta_desc, description, created_at FROM blogs WHERE status=1 ORDER BY created_at DESC, blog_id DESC LIMIT 3");
+// ---- 6. Blogs & Corridors ----
+$Bl = [];
+if ($ok) {
+    $db_blogs = q("SELECT title, slug, author, image, meta_desc, description, created_at FROM blogs WHERE status=1 ORDER BY created_at DESC, blog_id DESC LIMIT 3");
+    if (!empty($db_blogs)) $Bl = $db_blogs;
+}
 
 $C = [
     ['Gulf', 'Dubai, Oman and Saudi Arabia', 'Weekly sailings to Jebel Ali, Sohar, Muscat, Dammam and Jeddah.', 'Sea transit 4 to 8 days'],
@@ -1112,6 +1152,281 @@ $C = [
         transform: none
     }
 
+    .pg-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 24px;
+    }
+
+    .pc-card {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: var(--r);
+        padding: 14px 14px 22px;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.3s;
+    }
+
+    .pc-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    .pc-img {
+        border-radius: 999px 999px 6px 6px;
+        width: 100%;
+        aspect-ratio: 4/4.4;
+        object-fit: cover;
+        transition: transform .9s var(--e);
+    }
+
+    .pc-card:hover .pc-img {
+        transform: scale(1.05);
+    }
+
+    .pc-cat {
+        display: block;
+        margin: 18px 6px 4px;
+        color: var(--bronze);
+        font-weight: 600;
+        font-size: .78rem;
+        text-transform: uppercase;
+    }
+
+    .pc-title {
+        font-size: 1.22rem;
+        margin: 0 6px 8px;
+        color: var(--ink);
+        transition: color 0.3s;
+    }
+
+    .pc-card:hover .pc-title {
+        color: var(--bronze);
+    }
+
+    .pc-desc {
+        font-size: .88rem;
+        color: var(--mut);
+        margin: 0 6px 16px;
+        line-height: 1.6;
+    }
+
+    .pc-btn {
+        margin: auto 6px 0;
+        align-self: flex-start;
+        background: 0;
+        border: 0;
+        border-bottom: 1.5px solid var(--gold);
+        padding: 2px 0;
+        font: 600 .9rem/1.4 'Hanken Grotesk', sans-serif;
+        color: var(--ink);
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .pc-card:hover .pc-btn {
+        color: var(--bronze);
+        padding-right: 8px;
+    }
+
+    .sg-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+    }
+
+    .sv-card {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-top: 3px solid var(--gold);
+        padding: 32px 28px;
+        border-radius: 0 0 var(--r) var(--r);
+        transition: transform 0.3s;
+    }
+
+    .sv-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    .sv-title {
+        font-size: 1.28rem;
+        margin-bottom: 10px;
+        color: var(--ink);
+    }
+
+    .cg-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .cr-card {
+        padding: 28px 24px;
+        border: 1px solid rgba(214, 172, 86, .3);
+        border-radius: var(--r);
+        transition: background .4s, border-color .4s;
+    }
+
+    .cr-card:hover {
+        background: rgba(255, 255, 255, .06);
+        border-color: var(--gold);
+    }
+
+    .gg-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        grid-auto-rows: 250px;
+        gap: 16px;
+    }
+
+    .gg-figure {
+        position: relative;
+        overflow: hidden;
+        border-radius: var(--r);
+    }
+
+    .gg-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 1s var(--e);
+    }
+
+    .gg-figure:hover .gg-img {
+        transform: scale(1.08);
+    }
+
+    .gg-cap {
+        position: absolute;
+        inset: auto 0 0;
+        padding: 44px 20px 18px;
+        color: #fff;
+        font-weight: 500;
+        background: linear-gradient(transparent, rgba(18, 35, 42, .88));
+    }
+
+    /* New Trusted Testimonial Design */
+    .tc-scroll {
+        display: flex;
+        gap: 24px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        padding-bottom: 24px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--gold) transparent;
+    }
+
+    .tc-card {
+        flex: 0 0 min(420px, 85%);
+        scroll-snap-align: start;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-top: 4px solid var(--gold);
+        border-radius: var(--r);
+        padding: 35px 30px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 24px;
+        position: relative;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    }
+
+    .tc-card::before {
+        content: '“';
+        position: absolute;
+        top: 15px;
+        right: 25px;
+        font-size: 5.5rem;
+        color: var(--sand);
+        font-family: Georgia, serif;
+        line-height: 1;
+    }
+
+    .tc-stars {
+        color: var(--gold);
+        letter-spacing: 3px;
+        font-size: 1.1rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .tc-msg {
+        margin-top: 10px;
+        font-size: 1.05rem;
+        font-style: italic;
+        color: var(--mut);
+        line-height: 1.6;
+        position: relative;
+        z-index: 2;
+    }
+
+    .tc-auth {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        border-top: 1px solid var(--line);
+        padding-top: 20px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .tc-auth img {
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--sand);
+    }
+
+    .tc-auth i {
+        flex: none;
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        background: var(--ink2);
+        color: var(--gold);
+        display: grid;
+        place-items: center;
+        font: normal 1.3rem Marcellus, serif;
+    }
+
+    .tc-name {
+        display: block;
+        line-height: 1.2;
+        color: var(--ink);
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .tc-desig {
+        color: var(--mut);
+        font-size: 0.85rem;
+        display: block;
+        margin-top: 2px;
+    }
+
+    .tc-verified {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.75rem;
+        color: #25D366;
+        font-weight: 700;
+        margin-top: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .bg-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 26px;
+        margin-top: 30px;
+    }
+
     @media(max-width:960px) {
         .tg {
             display: block
@@ -1313,23 +1628,18 @@ $C = [
                 <p>Sorted, graded and packed in moisture-locked bulk packaging for wholesalers, supermarkets and food
                     processors.</p>
             </div>
-            <div class="pg">
+            <div class="pg-grid">
                 <?php foreach ($P as $p): ?>
-                <article class="pc rv">
-                    <div class="im">
+                <article class="pc-card rv">
+                    <div style="overflow: hidden; border-radius: 999px 999px 6px 6px;">
                         <a href="product-details.php?slug=<?= e($p[4]) ?>">
-                            <img src="<?= e($p[3]) ?>" alt="<?= e($p[0]) ?>" loading="lazy"
-                                style="border-radius: 999px 999px 6px 6px; width: 100%; aspect-ratio: 4/4.4; object-fit: cover; transition: transform .9s cubic-bezier(.2, .7, .2, 1);">
+                            <img class="pc-img" src="<?= e($p[3]) ?>" alt="<?= e($p[0]) ?>" loading="lazy">
                         </a>
                     </div>
-                    <small
-                        style="display: block; margin: 18px 6px 4px; color: var(--bronze); font-weight: 600; font-size: .78rem; text-transform: uppercase;"><?= e($p[1]) ?></small>
-                    <h3 style="font-size: 1.22rem; margin: 0 6px 8px;"><a
-                            href="product-details.php?slug=<?= e($p[4]) ?>"><?= e($p[0]) ?></a></h3>
-                    <p style="font-size: .88rem; color: var(--mut); margin: 0 6px 16px; line-height: 1.6;">
-                        <?= e(mb_strimwidth($p[2], 0, 100, '...')) ?></p>
-                    <button type="button"
-                        style="margin: auto 6px 0; align-self: flex-start; background: 0; border: 0; border-bottom: 1.5px solid var(--gold); padding: 2px 0; font: 600 .9rem/1.4 'Hanken Grotesk', sans-serif; color: var(--ink); cursor: pointer;"
+                    <small class="pc-cat"><?= e($p[1]) ?></small>
+                    <h3 class="pc-title"><a href="product-details.php?slug=<?= e($p[4]) ?>"><?= e($p[0]) ?></a></h3>
+                    <p class="pc-desc"><?= e(mb_strimwidth($p[2], 0, 100, '...')) ?></p>
+                    <button type="button" class="pc-btn"
                         onclick="document.getElementById('pi').value='<?= e($p[0]) ?>'; document.getElementById('rfq').scrollIntoView({behavior: 'smooth'}); setTimeout(()=>document.getElementById('pi').focus(),700);">Request
                         bulk price</button>
                 </article>
@@ -1345,12 +1655,10 @@ $C = [
                 <p>From farm-level buying and lab testing to container loading and customs clearance at Dubai and
                     African ports.</p>
             </div>
-            <div class="sg"
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+            <div class="sg-grid">
                 <?php foreach ($S as $s): ?>
-                <div class="sv rv"
-                    style="background: #fff; border: 1px solid var(--line); border-top: 3px solid var(--gold); padding: 32px 28px; border-radius: 0 0 var(--r) var(--r);">
-                    <h3 style="font-size: 1.28rem; margin-bottom: 10px;"><?= e($s[0]) ?></h3>
+                <div class="sv-card rv">
+                    <h3 class="sv-title"><?= e($s[0]) ?></h3>
                     <p style="color: var(--mut); font-size: .93rem;"><?= e(mb_strimwidth($s[1], 0, 170, '...')) ?></p>
                 </div>
                 <?php endforeach; ?>
@@ -1366,11 +1674,9 @@ $C = [
                 <p>Dedicated shipping-line contracts keep your cargo fresh, intact and fully documented from loading to
                     discharge.</p>
             </div>
-            <div class="cg"
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+            <div class="cg-grid">
                 <?php foreach ($C as $c): ?>
-                <div class="cr rv"
-                    style="padding: 28px 24px; border: 1px solid rgba(214, 172, 86, .3); border-radius: var(--r);">
+                <div class="cr-card rv">
                     <em style="font: normal 400 .85rem 'Hanken Grotesk'; color: var(--gold);"><?= e($c[0]) ?></em>
                     <h3 style="font-size: 1.25rem; color: #fff; margin: 8px 0 10px;"><?= e($c[1]) ?></h3>
                     <p style="font-size: .88rem; color: rgba(255, 255, 255, .7); margin-bottom: 16px;"><?= e($c[2]) ?>
@@ -1387,15 +1693,11 @@ $C = [
             <div class="sh c rv">
                 <h2>Inside our export operations</h2><span class="ar">عملياتنا</span>
             </div>
-            <div class="gg"
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); grid-auto-rows: 250px; gap: 16px;">
+            <div class="gg-grid">
                 <?php foreach ($G as $g): ?>
-                <figure class="rv" style="position: relative; overflow: hidden; border-radius: var(--r);">
-                    <img src="<?= e($g[1]) ?>" alt="<?= e($g[0]) ?>" loading="lazy"
-                        style="width: 100%; height: 100%; object-fit: cover;">
-                    <figcaption
-                        style="position: absolute; inset: auto 0 0; padding: 44px 20px 18px; color: #fff; font-weight: 500; background: linear-gradient(transparent, rgba(18, 35, 42, .88));">
-                        <?= e($g[0]) ?></figcaption>
+                <figure class="gg-figure rv">
+                    <img class="gg-img" src="<?= e($g[1]) ?>" alt="<?= e($g[0]) ?>" loading="lazy">
+                    <figcaption class="gg-cap"><?= e($g[0]) ?></figcaption>
                 </figure>
                 <?php endforeach; ?>
             </div>
@@ -1407,21 +1709,31 @@ $C = [
             <div class="sh c rv">
                 <h2>Trusted by importers in Dubai and Africa</h2><span class="ar">آراء عملائنا</span>
             </div>
-            <div class="tr rv"
-                style="display: flex; gap: 22px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 18px;">
+            <div class="tc-scroll rv">
                 <?php foreach ($T as $t): ?>
-                <div class="tc"
-                    style="flex: 0 0 min(400px, 86%); scroll-snap-align: start; background: #fff; border: 1px solid var(--line); border-radius: var(--r); padding: 30px; display: flex; flex-direction: column; justify-content: space-between; gap: 24px;">
-                    <div><span class="st"
-                            style="color: var(--gold); letter-spacing: 3px;"><?= str_repeat('★', max(1, min(5, $t[3]))) ?></span>
-                        <p style="margin-top: 10px; font-size: .98rem;">“<?= e($t[2]) ?>”</p>
+                <div class="tc-card">
+                    <div>
+                        <span class="tc-stars"><?= str_repeat('★', max(1, min(5, $t[3]))) ?></span>
+                        <p class="tc-msg">“<?= e($t[2]) ?>”</p>
                     </div>
-                    <div class="who"
-                        style="display: flex; gap: 14px; align-items: center; border-top: 1px solid var(--line); padding-top: 18px;">
-                        <i
-                            style="flex: none; width: 44px; height: 44px; border-radius: 50%; background: var(--ink); color: var(--gold); display: grid; place-items: center; font: normal 1.1rem Marcellus, serif;"><?= e(strtoupper(mb_substr($t[0], 0, 1))) ?></i>
-                        <div><b style="display: block; line-height: 1.3;"><?= e($t[0]) ?></b><small
-                                style="color: var(--mut);"><?= e($t[1]) ?></small></div>
+                    <div class="tc-auth">
+                        <?php if (!empty($t[4])): ?>
+                        <img src="<?= e($t[4]) ?>" alt="<?= e($t[0]) ?>">
+                        <?php else: ?>
+                        <i><?= e(strtoupper(mb_substr($t[0], 0, 1))) ?></i>
+                        <?php endif; ?>
+
+                        <div>
+                            <b class="tc-name"><?= e($t[0]) ?></b>
+                            <small class="tc-desig"><?= e($t[1]) ?></small>
+                            <span class="tc-verified">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                    <path
+                                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                                </svg>
+                                Verified Buyer
+                            </span>
+                        </div>
                     </div>
                 </div>
                 <?php endforeach; ?>
@@ -1429,7 +1741,7 @@ $C = [
         </div>
     </section>
 
-    <?php if ($Bl): ?>
+    <?php if (!empty($Bl)): ?>
     <section id="blogs">
         <div class="wrap">
             <div class="bh sh"
@@ -1438,8 +1750,7 @@ $C = [
                     <h2>Export guides and trade insights</h2><span class="ar">رؤى تجارية</span>
                 </div><a href="blog.php" class="btn o">All articles</a>
             </div>
-            <div class="bg3"
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 26px; margin-top: 30px;">
+            <div class="bg-grid">
                 <?php foreach ($Bl as $b):
                 $bi = img($b['image'], 'blogs', un('photo-1596040033229-a9821ebd058d'));
                 $ex = txt($b['meta_desc'], 130) ?: txt($b['description'], 130);
@@ -1448,7 +1759,7 @@ $C = [
                     <a class="im" href="<?= e($u) ?>"
                         style="overflow: hidden; border-radius: var(--r); margin-bottom: 18px;"><img src="<?= e($bi) ?>"
                             alt="<?= e($b['title']) ?>" loading="lazy"
-                            style="width: 100%; aspect-ratio: 16/10; object-fit: cover;"></a>
+                            style="width: 100%; aspect-ratio: 16/10; object-fit: cover; transition: transform .9s var(--e);"></a>
                     <small
                         style="color: var(--mut); display: flex; gap: 16px; font-size: .82rem;"><span><?= e(date('d M Y', strtotime($b['created_at'] ?: 'now'))) ?></span><span><?= e($b['author']) ?></span></small>
                     <h3 style="font-size: 1.28rem; margin: 8px 0 10px;"><a href="<?= e($u) ?>"><?= e($b['title']) ?></a>

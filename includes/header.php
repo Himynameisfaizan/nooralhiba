@@ -659,7 +659,7 @@ $canonical_url = $protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
                     <li><a href="index.php#services">Services</a></li>
                     <li><a href="blog.php">Insights</a></li>
                 </ul>
-                <a href="index.php#rfq" class="btn">Request a quote</a>
+                <a href="contact-us.php" class="btn">Request a quote</a>
             </nav>
         </div>
     </header>

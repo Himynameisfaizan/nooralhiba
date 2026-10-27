@@ -14,12 +14,12 @@ $map_iframe = '';
 if ($ok) {
     $table_check_set = q("SHOW TABLES LIKE 'settings'");
     if (count($table_check_set) > 0) {
-        $db_set = q("SELECT email, phone, address, map_iframe FROM settings LIMIT 1");
+        $db_set = q("SELECT email, phone, address, map FROM contacts LIMIT 1");
         if (!empty($db_set)) {
             $contact_email = !empty($db_set[0]['email']) ? $db_set[0]['email'] : $contact_email;
             $contact_phone = !empty($db_set[0]['phone']) ? $db_set[0]['phone'] : $contact_phone;
             $contact_address = !empty($db_set[0]['address']) ? $db_set[0]['address'] : $contact_address;
-            $map_iframe = !empty($db_set[0]['map_iframe']) ? $db_set[0]['map_iframe'] : '';
+            $map_iframe = !empty($db_set[0]['map']) ? $db_set[0]['map'] : '';
         }
     }
 }

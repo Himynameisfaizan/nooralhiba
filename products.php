@@ -763,23 +763,7 @@ $nav = ['index.php#home' => 'Home', 'about.php' => 'About', 'products.php' => 'P
 <body>
 
     <!-- Header -->
-    <header id="top">
-        <div class="wrap nav">
-            <a class="brand" href="index.php">
-                <?= mark(46) ?>
-                <span><b>NOOR AL HIBA</b><small>TRADING LLC</small></span>
-            </a>
-            <button class="tg" aria-label="Menu" aria-expanded="false"><i></i></button>
-            <nav>
-                <ul>
-                    <?php foreach ($nav as $url => $l): ?>
-                    <li><a href="<?= $url ?>"><?= $l ?></a></li>
-                    <?php endforeach; ?>
-                </ul>
-                <a href="index.php#rfq" class="btn">Request a quote</a>
-            </nav>
-        </div>
-    </header>
+    <?php include 'includes/header.php'; ?>
 
     <!-- Inner Hero -->
     <section class="inner-hero">

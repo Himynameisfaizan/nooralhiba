@@ -1,57 +1,11 @@
 <?php
+$page_title = 'Noor Al Hiba Trading LLC | Import & Export from Dubai to Africa';
+$page_desc = 'Export-grade spices, dry fruits and agro commodities to importers across Dubai, GCC and Africa.';
 
-/** NOOR AL HIBA TRADING LLC - Homepage (Dubai / Africa trade design) */
-session_start();
-mysqli_report(MYSQLI_REPORT_OFF);
-$wa = '971500000000';
-$mail = 'export@nooralhibatrading.com';
-try {
-    $conn = new mysqli('localhost', 'root', '', 'nooralhiba');
-} // Hostinger: apna DB user/pass/name yahan dalein
-catch (Throwable $t) {
-    $conn = null;
-}
-$ok = $conn && !$conn->connect_error;
-if ($ok) $conn->set_charset('utf8mb4');
+// Ek hi baar header include hoga yahan
+include 'includes/header.php';
 
-function q($sql)
-{
-    global $conn, $ok;
-    $r = [];
-    if ($ok && ($res = @$conn->query($sql))) while ($x = $res->fetch_assoc()) $r[] = $x;
-    return $r;
-}
-function e($s)
-{
-    return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
-}
-// Clean text; purane brand (Bhagirath/Khetarpal) ka content skip karta hai taaki fallback copy dikhe
-function txt($s, $n = 0)
-{
-    $s = trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags((string)$s))));
-    if (preg_match('/Bhagirath|Khetarpal/i', $s)) return '';
-    return $n ? mb_strimwidth($s, 0, $n, '...') : $s;
-}
-function img($f, $d, $fb)
-{
-    $f = trim((string)$f);
-    if ($f === '') return $fb;
-    if (preg_match('#^https?://#', $f)) return $f;
-    $c = ltrim($f, '/');
-    $b = basename($c);
-    foreach ([$c, "admin/$c", "uploads/$d/$b", "admin/uploads/$d/$b", "assets/img/uploads/$d/$b", "assets/images/$b"] as $p) if (is_file($p)) return $p;
-    return $fb;
-}
-function un($id, $w = 800)
-{
-    return "https://images.unsplash.com/$id?auto=format&fit=crop&w=$w&q=80";
-}
-function mark($w = 46)
-{
-    return '<svg viewBox="290 55 815 710" width="' . $w . '" aria-hidden="true"><path fill="currentColor" d="M325 476l78-56v228l-78 40zM425 352l123-90v346l-123 32zM570 150l123-88v535l-123 8z"/><path fill="none" stroke="currentColor" stroke-width="7" d="M697 68l118 84v451l-118-6zM838 262l122 90v284l-120-29zM984 420l76 56v206l-76-37z"/><path fill="#D6AC56" d="M298 757C500 650 900 650 1097 757 900 700 500 700 298 757z"/></svg>';
-}
-
-// ---- Data ----
+// ---- Data Fetching ----
 $B = q("SELECT banner_path FROM banners ORDER BY display_order ASC, id DESC LIMIT 1");
 $hero = img($B[0]['banner_path'] ?? '', 'banners', un('photo-1596040033229-a9821ebd058d', 900));
 
@@ -71,15 +25,12 @@ $FP = [
     ['Kashmiri Mongra Saffron', 'Luxury spices', 'ISO 3632 Grade I strands in acrylic or metal wholesale packaging.', 'photo-1509316975850-ff9c5deb0cd9'],
 ];
 $P = [];
-foreach (q("SELECT pro_name, pro_img, is_disabled FROM products ORDER BY id DESC LIMIT 8") as $i => $r) {
+foreach (q("SELECT pro_name, pro_img, is_disabled, slug FROM products ORDER BY id DESC LIMIT 8") as $i => $r) {
     if (!empty($r['is_disabled']) || txt($r['pro_name']) === '') continue;
     $f = preg_split('/[,|;"]+/', trim(stripslashes((string)$r['pro_img']), '[]" '))[0];
-    $P[] = [txt($r['pro_name']), 'Export grade', 'Graded and packed for GCC and African importers. Ask for FOB or CIF pricing.', img($f, 'products', un($FP[$i % 8][3], 700))];
+    $P[] = [txt($r['pro_name']), 'Export grade', 'Graded and packed for GCC and African importers. Ask for FOB or CIF pricing.', img($f, 'products', un($FP[$i % 8][3], 700)), $r['slug'] ?? ''];
 }
-if (count($P) < 4) {
-    $P = [];
-    foreach ($FP as $x) $P[] = [$x[0], $x[1], $x[2], un($x[3], 700)];
-}
+if (count($P) < 4) { $P=[]; foreach ($FP as $x) $P[]=[$x[0], $x[1], $x[2], un($x[3], 700), '']; }
 
 $FS = [
     ['Global sourcing and procurement', 'Direct farm-gate and processing-unit buying for authentic origin, fair pricing and year-round bulk availability.'],
@@ -87,26 +38,29 @@ $FS = [
     ['Private labelling and packaging', 'Food-grade vacuum packs, tins and 25 kg / 50 kg bags with Arabic, English and French labels.'],
     ['SGS inspection and certification', 'Pre-shipment testing for moisture, aflatoxin and pesticide residue, with a COA for every lot.'],
     ['Export documents and clearance', 'Certificate of Origin, phytosanitary and health certificates, bills of lading and port clearance.'],
-    ['Trade finance and Incoterms', 'Clear FOB, CIF, CFR and DDP terms, backed by secure L/C and TT banking channels.'],
+    ['Trade finance and Incoterms', 'Clear FOB, CIF, CFR and DDP terms, backed by secure L/C and TT banking channels.']
 ];
 $S = [];
 foreach (q("SELECT service_name, short_desc FROM services ORDER BY id ASC LIMIT 6") as $r) {
-    $t = txt($r['service_name']);
-    $d = txt($r['short_desc']);
+    $t = txt($r['service_name']); $d = txt($r['short_desc']);
     if ($t && $d) $S[] = [$t, $d];
 }
 if (count($S) < 3) $S = $FS;
 
 $G = [];
-foreach (q("SELECT image_name, image_path FROM gallery ORDER BY ID DESC LIMIT 6") as $r) $G[] = [txt($r['image_name']) ?: 'Export operations', img($r['image_path'], 'gallery', un('photo-1586528116311-ad8dd3c8310d'))];
-if (count($G) < 3) $G = [
-    ['Container loading and port dispatch', un('photo-1586528116311-ad8dd3c8310d')],
-    ['Spice grading and Sortex cleaning', un('photo-1596040033229-a9821ebd058d')],
-    ['Cashew and dry fruit processing', un('photo-1508061253366-f7da158b6d46')],
-    ['Sea freight operations', un('photo-1494412574643-ff11b0a5c1c3')],
-    ['Hygienic warehouse storage', un('photo-1553413077-190dd305871c')],
-    ['Export-ready jute and carton pallets', un('photo-1532336414038-cf19250c5757')]
-];
+foreach (q("SELECT image_name, image_path FROM gallery ORDER BY ID DESC LIMIT 6") as $r) {
+    $G[] = [txt($r['image_name']) ?: 'Export operations', img($r['image_path'], 'gallery', un('photo-1586528116311-ad8dd3c8310d'))];
+}
+if (count($G) < 3) {
+    $G = [
+        ['Container loading and port dispatch', un('photo-1586528116311-ad8dd3c8310d')],
+        ['Spice grading and Sortex cleaning', un('photo-1596040033229-a9821ebd058d')],
+        ['Cashew and dry fruit processing', un('photo-1508061253366-f7da158b6d46')],
+        ['Sea freight operations', un('photo-1494412574643-ff11b0a5c1c3')],
+        ['Hygienic warehouse storage', un('photo-1553413077-190dd305871c')],
+        ['Export-ready jute and carton pallets', un('photo-1532336414038-cf19250c5757')]
+    ];
+}
 
 $T = [];
 foreach (q("SELECT name, designation, client_company, message, rating FROM testimonials WHERE status=1 ORDER BY display_order ASC, test_id DESC LIMIT 6") as $r) {
@@ -114,12 +68,14 @@ foreach (q("SELECT name, designation, client_company, message, rating FROM testi
     if ($m === '') continue;
     $T[] = [txt($r['name']) ?: 'Importer', trim(txt($r['designation']) . ' ' . txt($r['client_company'])), $m, (int)($r['rating'] ?: 5)];
 }
-if (count($T) < 2) $T = [
-    ['Tariq Al-Mansoori', 'Procurement Director, Al-Baraka Foodstuff, Dubai', 'Our most dependable supplier for W240 cashews and green cardamom at Jebel Ali. Moisture control, packaging and paperwork are exact every time.', 5],
-    ['Samuel Ochieng', 'Managing Partner, East Africa Commodities, Mombasa', 'Full containers of spices need strict phytosanitary and SGS compliance. Every shipment left on schedule with no customs delays.', 5],
-    ['Khalid Bin Said', 'Head of Imports, Muscat Hypermarket Group, Oman', 'Their transparency on grading and pricing sets them apart. The almonds and raisins beat our retail benchmarks.', 5],
-    ['Chinedu Eze', 'CEO, West Coast Agro Ingredients, Lagos', 'From sample approval to the final 40ft dispatch, communication was first-class. A trustworthy partner for African food makers.', 5]
-];
+if (count($T) < 2) {
+    $T = [
+        ['Tariq Al-Mansoori', 'Procurement Director, Al-Baraka Foodstuff, Dubai', 'Our most dependable supplier for W240 cashews and green cardamom at Jebel Ali. Moisture control, packaging and paperwork are exact every time.', 5],
+        ['Samuel Ochieng', 'Managing Partner, East Africa Commodities, Mombasa', 'Full containers of spices need strict phytosanitary and SGS compliance. Every shipment left on schedule with no customs delays.', 5],
+        ['Khalid Bin Said', 'Head of Imports, Muscat Hypermarket Group, Oman', 'Their transparency on grading and pricing sets them apart. The almonds and raisins beat our retail benchmarks.', 5],
+        ['Chinedu Eze', 'CEO, West Coast Agro Ingredients, Lagos', 'From sample approval to the final 40ft dispatch, communication was first-class. A trustworthy partner for African food makers.', 5]
+    ];
+}
 
 $Bl = q("SELECT title, slug, author, image, meta_desc, description, created_at FROM blogs WHERE status=1 ORDER BY created_at DESC, blog_id DESC LIMIT 3");
 
@@ -129,7 +85,6 @@ $C = [
     ['West Africa', 'Nigeria, Ghana and Ivory Coast', 'Moisture-protected packing for Apapa, Tin Can and Tema, with SONCAP and CTN help.', 'Full permit assistance'],
     ['North and South Africa', 'South Africa, Egypt and Morocco', 'Durban, Cape Town, Alexandria and Casablanca with private-label options.', 'Custom packaging'],
 ];
-$nav = ['about.php' => 'About', 'products' => 'Products', 'services' => 'Services', 'corridors' => 'Trade routes', 'gallery' => 'Gallery', 'blogs' => 'Insights'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -1305,13 +1260,11 @@ $nav = ['about.php' => 'About', 'products' => 'Products', 'services' => 'Service
 </head>
 
 <body>
-
-    <?php include ('includes/header.php')?>
-
     <section class="hero dk" id="home">
         <div class="wrap">
             <div class="in">
-                <div class="greet"><span class="ar">أهلاً وسهلاً</span><span>Karibu</span><span>Bienvenue</span></div>
+                <div class="greet"><span class="ar">أهلاً وسهلاً</span><span>Karibu</span><span>Bienvenue</span>
+                </div>
                 <h1>From Dubai to the ports of Africa, trade you can rely on</h1>
                 <p>Noor Al Hiba Trading LLC sources, grades and ships export-quality spices, dry fruits and agro
                     commodities to importers across the Gulf, East Africa and West Africa.</p>
@@ -1344,14 +1297,18 @@ $nav = ['about.php' => 'About', 'products' => 'Products', 'services' => 'Service
                 <span class="ar">من نحن</span>
                 <h2><?= e($about_t) ?></h2>
                 <?php if ($about_c): ?><p><?= e(mb_strimwidth($about_c, 0, 520, '...')) ?></p><?php else: ?>
-                <p>We process, source and export premium whole spices, dry fruits, nuts and seeds to wholesalers,
-                    supermarket chains and food manufacturers in the UAE, the wider GCC, and across East and West
+                <p>We process, source and export premium whole spices, dry fruits, nuts and seeds to
+                    wholesalers,
+                    supermarket chains and food manufacturers in the UAE, the wider GCC, and across East and
+                    West
                     Africa.</p>
-                <p>Every shipment follows the same standard: lab-tested quality, clear trade documents and containers
+                <p>Every shipment follows the same standard: lab-tested quality, clear trade documents and
+                    containers
                     that leave on the date we promise.</p><?php endif; ?>
                 <ul class="pts">
                     <li><b>Direct origin sourcing</b>Bought from certified farms and processing hubs.</li>
-                    <li><b>Gulf and Africa compliant</b>Dubai Municipality, SFDA, KEBS, NAFDAC and EU norms.</li>
+                    <li><b>Gulf and Africa compliant</b>Dubai Municipality, SFDA, KEBS, NAFDAC and EU norms.
+                    </li>
                 </ul>
                 <a href="#rfq" class="btn">Partner with us</a>
             </div>
@@ -1362,7 +1319,8 @@ $nav = ['about.php' => 'About', 'products' => 'Products', 'services' => 'Service
         <div class="wrap">
             <div class="sh c rv">
                 <h2>Export-grade commodities</h2><span class="ar">منتجات التصدير</span>
-                <p>Sorted, graded and packed in moisture-locked bulk packaging for wholesalers, supermarkets and food
+                <p>Sorted, graded and packed in moisture-locked bulk packaging for wholesalers, supermarkets and
+                    food
                     processors.</p>
             </div>
             <div class="pg">
@@ -1383,7 +1341,8 @@ $nav = ['about.php' => 'About', 'products' => 'Products', 'services' => 'Service
         <div class="wrap">
             <div class="sh rv">
                 <h2>Complete import and export services</h2><span class="ar">خدمات التجارة</span>
-                <p>From farm-level buying and lab testing to container loading and customs clearance at Dubai and
+                <p>From farm-level buying and lab testing to container loading and customs clearance at Dubai
+                    and
                     African ports.</p>
             </div>
             <div class="sg">
@@ -1402,7 +1361,8 @@ $nav = ['about.php' => 'About', 'products' => 'Products', 'services' => 'Service
         <div class="wrap">
             <div class="sh rv">
                 <h2>Trade routes across the Gulf and Africa</h2><span class="ar">ممرات التجارة</span>
-                <p>Dedicated shipping-line contracts keep your cargo fresh, intact and fully documented from loading to
+                <p>Dedicated shipping-line contracts keep your cargo fresh, intact and fully documented from
+                    loading to
                     discharge.</p>
             </div>
             <div class="cg">
@@ -1483,7 +1443,8 @@ $nav = ['about.php' => 'About', 'products' => 'Products', 'services' => 'Service
             <div class="rv">
                 <h2>Request a custom FOB or CIF quotation</h2><span class="ar" style="display:block;margin-top:8px">اطلب
                     عرض سعر</span>
-                <p>Tell us the commodity, grade, packing and destination port. Our export team replies with a formal
+                <p>Tell us the commodity, grade, packing and destination port. Our export team replies with a
+                    formal
                     proforma within 4 business hours.</p>
                 <ul class="pts">
                     <li><b>Samples by DHL or FedEx</b>Representative samples before you commit.</li>

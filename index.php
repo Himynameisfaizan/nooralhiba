@@ -129,7 +129,7 @@ $C = [
     ['West Africa', 'Nigeria, Ghana and Ivory Coast', 'Moisture-protected packing for Apapa, Tin Can and Tema, with SONCAP and CTN help.', 'Full permit assistance'],
     ['North and South Africa', 'South Africa, Egypt and Morocco', 'Durban, Cape Town, Alexandria and Casablanca with private-label options.', 'Custom packaging'],
 ];
-$nav = ['about' => 'About', 'products' => 'Products', 'services' => 'Services', 'corridors' => 'Trade routes', 'gallery' => 'Gallery', 'blogs' => 'Insights'];
+$nav = ['about.php' => 'About', 'products' => 'Products', 'services' => 'Services', 'corridors' => 'Trade routes', 'gallery' => 'Gallery', 'blogs' => 'Insights'];
 ?>
 <!DOCTYPE html>
 <html lang="en">

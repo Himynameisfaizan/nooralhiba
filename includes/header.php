@@ -1,26 +1,23 @@
 <?php
-/** NOOR AL HIBA TRADING LLC - Global Header */
+/** NOOR AL HIBA TRADING LLC - Global Header & SEO Engine */
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 mysqli_report(MYSQLI_REPORT_OFF);
 
 // Global Variables
-$wa = '971500000000';
-$mail = 'export@nooralhibatrading.com';
+$wa = '971500000000';$mail = 'export@nooralhibatrading.com';
 
-// 1. Database Connection (Config file se)
-require_once __DIR__ . '/../config/connect.php';
-
-// Check connection status
+// 1. Database Connection (Ensure correct path to your config)
+include 'config/connect.php';
 $ok = isset($conn) && !$conn->connect_error;
 
-// 2. Global Functions (Prevent Cannot redeclare error)
+// 2. Global Functions
 if (!function_exists('q')) {
     function q($sql) {
-        global $conn, $ok;
+        global $conn,$ok;
         $r = [];
-        if ($ok && ($res = @$conn->query($sql))) while ($x = $res->fetch_assoc()) $r[] = $x;
+        if ($ok && ($res = @$conn->query($sql))) while ($x =$res->fetch_assoc()) $r[] =$x;
         return $r;
     }
 }
@@ -28,46 +25,44 @@ if (!function_exists('e')) {
     function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 }
 if (!function_exists('txt')) {
-    function txt($s, $n = 0) {
+    function txt($s,$n = 0) {
         $s = trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags((string)$s))));
         if (preg_match('/Bhagirath|Khetarpal|candle-making/i', $s)) return '';
-        return $n ? mb_strimwidth($s, 0, $n, '...') : $s;
+        return $n ? mb_strimwidth($s, 0, $n, '...') :$s;
     }
 }
 if (!function_exists('img')) {
-    function img($f, $d, $fb) {
+    function img($f, $d,$fb) {
         global $site;
         $f = trim((string)$f);
-        if ($f === '') return $fb;
-        if (preg_match('#^https?://#', $f)) return $f;
+        if ($f === '') return$fb;
+        if (preg_match('#^https?://#', $f)) return$f;
         
         $c = ltrim($f, '/');
         $b = basename($c);
-        $base_url = $site ?? "http://localhost/projects/nooralhiba/"; 
-        $doc_root = $_SERVER['DOCUMENT_ROOT'] . "/projects/nooralhiba/";
+        $base_url =$site ?? "http://localhost/projects/nooralhiba/"; 
+        $doc_root =$_SERVER['DOCUMENT_ROOT'] . "/projects/nooralhiba/";
         
-        // Yahan maine aapka exact path add kar diya hai
         $possible_paths = [
-            $c, 
-            "admin/" . $c, 
-            "uploads/$d/$b", 
-            "admin/uploads/$d/$b", 
-            "assets/img/uploads/$d/$b", 
-            "assets/images/$b",
-            "admin/assets/img/uploads/$d/$b",
-            "admin/assets/img/uploads/$b" // <-- Ye raha aapka exact admin path
+            $c, "admin/" . $c, "uploads/$d/$b", "admin/uploads/$d/$b", 
+            "assets/img/uploads/$d/$b", "assets/images/$b",
+            "admin/assets/img/uploads/$d/$b", "admin/assets/img/uploads/$b"
         ];
         
-        foreach ($possible_paths as $p) {
-            if (is_file($doc_root . $p)) return $base_url . $p;
+        foreach ($possible_paths as$p) {
+            if (is_file($doc_root .$p)) return $base_url .$p;
         }
         return $fb;
     }
 }
 
+// YEH FUNCTION MISSING THA - ADDED NOW
 if (!function_exists('un')) {
-    function un($id, $w = 800) { return "https://images.unsplash.com/$id?auto=format&fit=crop&w=$w&q=80"; }
+    function un($id,$w = 800) { 
+        return "https://images.unsplash.com/$id?auto=format&fit=crop&w=$w&q=80"; 
+    }
 }
+
 if (!function_exists('mark')) {
     function mark($w = 46) {
         return '<svg viewBox="290 55 815 710" width="' . $w . '" aria-hidden="true"><path fill="currentColor" d="M325 476l78-56v228l-78 40zM425 352l123-90v346l-123 32zM570 150l123-88v535l-123 8z"/><path fill="none" stroke="currentColor" stroke-width="7" d="M697 68l118 84v451l-118-6zM838 262l122 90v284l-120-29zM984 420l76 56v206l-76-37z"/><path fill="#D6AC56" d="M298 757C500 650 900 650 1097 757 900 700 500 700 298 757z"/></svg>';
@@ -76,54 +71,41 @@ if (!function_exists('mark')) {
 
 // 3. Fetch Categories for Dropdown
 $nav_cats = [];
-if ($ok) {
-    $db_cats = q("SELECT id, category_name, slug FROM categories WHERE status=1");
+if ($ok) {$db_cats = q("SELECT id, category_name, slug FROM categories WHERE status=1");
     if (!empty($db_cats)) {
-        foreach ($db_cats as $c) {
-            $subs = q("SELECT subcat_name, slug FROM subcategories WHERE cat_id=".$c['id']." AND status=1");
-            $nav_cats[$c['slug']] = ['name' => $c['category_name'], 'subs' => $subs];
+        foreach ($db_cats as $c) {$subs = q("SELECT subcat_name, slug FROM subcategories WHERE cat_id=".$c['id']." AND status=1");
+            $nav_cats[$c['slug']] = ['name' => $c['category_name'], 'subs' =>$subs];
         }
     }
 }
-if (empty($nav_cats)) {
-    $nav_cats = [
-        'dry-fruits' => ['name' => 'Dry Fruits & Nuts', 'subs' => [['subcat_name'=>'Almonds','slug'=>'almonds'], ['subcat_name'=>'Cashews','slug'=>'cashews']]],
-        'whole-spices' => ['name' => 'Whole Spices', 'subs' => [['subcat_name'=>'Red Chilli','slug'=>'red-chilli'], ['subcat_name'=>'Cardamom','slug'=>'cardamom']]]
-    ];
-}
 
-// 4. Dynamic SEO & Schema Engine
+// 4. SMART DYNAMIC SEO & SCHEMA ENGINE
 $current_page_name = basename($_SERVER['PHP_SELF']);
 
-// Agar product/blog page ne apna khud ka meta set nahi kiya hai, tabhi global table se fetch karein
-if (!isset($meta_title) || empty($meta_title)) {
-    $meta_title = 'Noor Al Hiba Trading LLC | Import & Export from Dubai to Africa';
-    $meta_desc = 'Export-grade spices, dry fruits and agro commodities to importers across Dubai, GCC and Africa.';
-    $meta_key = 'import export dubai, spices wholesale, dry fruits supplier africa';
-    $schema = '';
+// Agar variables pehle se set nahi hain (i.e. static pages hain), toh global table se uthao
+if (!isset($meta_title)) {
+    $meta_title = 'Noor Al Hiba Trading LLC \vert{} Global Import & Export';$meta_desc = 'Premium export-grade spices, dry fruits, and agro commodities for Dubai, GCC, and African markets.';
+    $meta_key = 'import export dubai, spices wholesale, dry fruits supplier africa';$schema = '';
 
-    if ($ok) {
-        // Table name 'meta_and_page_schema' as requested
-        $seo_data = q("SELECT meta_title, meta_desc, meta_keyword, schema_markup FROM meta_and_page_schema WHERE page_name = '" . $conn->real_escape_string($current_page_name) . "' LIMIT 1");
+    if ($ok) {$seo_data = q("SELECT meta_title, meta_desc, meta_keyword, schema_markup FROM meta_and_page_schema WHERE page_name = '" . $conn->real_escape_string($current_page_name) . "' LIMIT 1");
         
         if (!empty($seo_data)) {
-            $meta_title = !empty($seo_data[0]['meta_title']) ? $seo_data[0]['meta_title'] : $meta_title;
-            $meta_desc = !empty($seo_data[0]['meta_desc']) ? $seo_data[0]['meta_desc'] : $meta_desc;
-            $meta_key = !empty($seo_data[0]['meta_keyword']) ? $seo_data[0]['meta_keyword'] : $meta_key;
-            $schema = !empty($seo_data[0]['schema_markup']) ? $seo_data[0]['schema_markup'] : '';
+            $meta_title = !empty($seo_data[0]['meta_title']) ? $seo_data[0]['meta_title'] :$meta_title;
+            $meta_desc  = !empty($seo_data[0]['meta_desc']) ? $seo_data[0]['meta_desc'] :$meta_desc;
+            $meta_key   = !empty($seo_data[0]['meta_keyword']) ? $seo_data[0]['meta_keyword'] :$meta_key;
+            $schema     = !empty($seo_data[0]['schema_markup']) ?$seo_data[0]['schema_markup'] : '';
         }
     }
 }
 
-// Ensure variables exist to prevent warnings
-$meta_title = $meta_title ?? 'Noor Al Hiba Trading LLC';
-$meta_desc = $meta_desc ?? '';
-$meta_key = $meta_key ?? '';
-$schema = $schema ?? '';
+// Fallback safety to prevent empty variables
+$meta_title =$meta_title ?: 'Noor Al Hiba Trading LLC';
+$meta_desc  =$meta_desc ?: '';
+$meta_key   =$meta_key ?: '';
 
-// Generate Canonical URL dynamically
+// Canonical URL generator
 $protocol = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
-$canonical_url = $protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+$canonical_url = $protocol . $_SERVER['HTTP_HOST'] . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -132,24 +114,24 @@ $canonical_url = $protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- Dynamic SEO & Meta Tags -->
+    <!-- SEO Meta Tags -->
     <title><?= e($meta_title) ?></title>
     <meta name="description" content="<?= e($meta_desc) ?>">
     <meta name="keywords" content="<?= e($meta_key) ?>">
     <link rel="canonical" href="<?= e($canonical_url) ?>">
 
-    <!-- Dynamic Schema Markup -->
+    <!-- JSON-LD Schema Markup -->
     <?php if (!empty($schema)) { echo $schema; } ?>
 
     <link rel="icon" href="1.png">
 
-    <!-- Fonts -->
+    <!-- Google Fonts & CSS -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Marcellus&family=Reem+Kufi:wght@500;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Marcellus&display=swap"
         rel="stylesheet">
-
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <script>
     document.documentElement.classList.add('js')
     </script>
@@ -656,7 +638,7 @@ $canonical_url = $protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
                         </ul>
                     </li>
 
-                    <li><a href="index.php#services">Services</a></li>
+                    <li><a href="service.php">Services</a></li>
                     <li><a href="blog.php">Insights</a></li>
                 </ul>
                 <a href="contact-us.php" class="btn">Request a quote</a>

@@ -1,4 +1,27 @@
 <?php
+// 1. Database pehle connect karein (Header include karne se pehle)
+require_once 'config/connect.php';
+
+// 2. Data fetch karein
+$slug = $_GET['slug'] ?? '';
+if (isset($conn) && !$conn->connect_error && !empty($slug)) {
+    $slug_safe = $conn->real_escape_string($slug);
+    $res = $conn->query("SELECT * FROM blogs WHERE slug = '$slug_safe' LIMIT 1");
+    if ($res && $res->num_rows > 0) {
+        $blog = $res->fetch_assoc();
+        
+        // 3. SET SEO VARIABLES (Ye variables header.php read kar lega)
+        $meta_title = $blog['meta_title'] ?: $blog['title'];
+        $meta_desc  = $blog['meta_desc'];
+        $meta_key   = $blog['meta_key'];
+        $schema     = $blog['schema_markup'];
+    } else {
+        header("Location: blog.php");
+        exit;
+    }
+}
+
+// 4. AB HEADER INCLUDE KAREIN
 include_once 'includes/header.php';
 
 

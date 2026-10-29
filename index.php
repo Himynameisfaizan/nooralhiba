@@ -1,8 +1,5 @@
 <?php
-$page_title = 'Noor Al Hiba Trading LLC | Import & Export from Dubai to Africa';
-$page_desc = 'Export-grade spices, dry fruits and agro commodities to importers across Dubai, GCC and Africa.';
-
-// Ek hi baar header include hoga
+// 1. HEADER INCLUDE (Ye automatically DB connect karega aur SEO + Schema ke sath <head> aur Navbar print karega)
 include_once 'includes/header.php';
 
 // ---- 1. Hero & About Data ----
@@ -22,7 +19,7 @@ $FP = [
     ['Bold Green Cardamom 8mm+', 'Whole spices', 'Aromatic deep-green pods sourced direct from estates, ready for retail and bulk.', 'photo-1596040033229-a9821ebd058d']
 ];
 $P = [];
-if ($ok) {
+if (isset($ok) && $ok) {
     $db_prods = q("SELECT pro_name, pro_img, is_disabled, slug_url FROM products WHERE is_disabled = 0 ORDER BY id DESC LIMIT 8");
     if (!empty($db_prods)) {
         foreach ($db_prods as $i => $r) {
@@ -44,7 +41,7 @@ $FS = [
     ['Private labelling and packaging', 'Food-grade vacuum packs, tins and 25 kg / 50 kg bags with Arabic, English and French labels.']
 ];
 $S = [];
-if ($ok) {
+if (isset($ok) && $ok) {
     $db_serv = q("SELECT service_name, short_desc FROM services ORDER BY id ASC LIMIT 6");
     if (!empty($db_serv)) {
         foreach ($db_serv as $r) {
@@ -56,17 +53,15 @@ if ($ok) {
 }
 if (count($S) < 3) $S = $FS;
 
-// ---- 4. Gallery Data (Fixed) ----
+// ---- 4. Gallery Data ----
 $G = [];
-if ($ok) {
-    // Handling multiple possible column names for gallery table
+if (isset($ok) && $ok) {
     $db_gal = q("SELECT * FROM gallery ORDER BY id DESC LIMIT 6");
     if (!empty($db_gal)) {
         foreach ($db_gal as $r) {
             $path = $r['image_path'] ?? $r['image'] ?? $r['img'] ?? '';
             $name = $r['image_name'] ?? $r['title'] ?? 'Export operations';
             if ($path) {
-                // Using our powerful img() function to locate the exact path
                 $G[] = [txt($name), img($path, 'gallery', un('photo-1586528116311-ad8dd3c8310d'))];
             }
         }
@@ -80,23 +75,18 @@ if (count($G) < 3) {
     ];
 }
 
-// ---- 5. Testimonials Data (Fixed & Enhanced) ----
+// ---- 5. Testimonials Data ----
 $T = [];
-if ($ok) {
-    // Fetching exactly as per your table structure
+if (isset($ok) && $ok) {
     $db_test = q("SELECT * FROM testimonials WHERE status=1 ORDER BY display_order ASC, test_id DESC LIMIT 6");
     if (!empty($db_test)) {
         foreach ($db_test as $r) {
             $m = txt($r['message'] ?? '');
             if ($m === '') continue;
-
             $name = txt($r['name'] ?? '') ?: 'Importer';
             $desig = trim(txt($r['designation'] ?? '') . ' ' . txt($r['client_company'] ?? ''));
             $rating = (int)($r['rating'] ?? 5);
-
-            // Checking if image exists in DB
             $img_path = !empty($r['image']) ? img($r['image'], 'testimonials', '') : '';
-
             $T[] = [$name, $desig, $m, $rating, $img_path];
         }
     }
@@ -110,7 +100,7 @@ if (count($T) < 2) {
 
 // ---- 6. Blogs & Corridors ----
 $Bl = [];
-if ($ok) {
+if (isset($ok) && $ok) {
     $db_blogs = q("SELECT title, slug, author, image, meta_desc, description, created_at FROM blogs WHERE status=1 ORDER BY created_at DESC, blog_id DESC LIMIT 3");
     if (!empty($db_blogs)) $Bl = $db_blogs;
 }
@@ -122,21 +112,8 @@ $C = [
     ['North and South Africa', 'South Africa, Egypt and Morocco', 'Durban, Cape Town, Alexandria and Casablanca with private-label options.', 'Custom packaging'],
 ];
 ?>
-<!DOCTYPE html>
-<html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Noor Al Hiba Trading LLC | Import &amp; Export from Dubai to Africa</title>
-    <meta name="description"
-        content="Noor Al Hiba Trading LLC supplies export-grade spices, dry fruits and agro commodities to importers across Dubai, the GCC and Africa.">
-    <link rel="icon" href="1.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Marcellus&family=Reem+Kufi:wght@500;600&display=swap"
-        rel="stylesheet">
     <script>
     document.documentElement.classList.add('js')
     </script>

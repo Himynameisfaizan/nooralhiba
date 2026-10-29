@@ -1,23 +1,20 @@
 <?php
-/** NOOR AL HIBA TRADING LLC - Global Header & SEO Engine */
+/** NOOR AL HIBA TRADING LLC - Global Header & Corrected SEO Engine */
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 mysqli_report(MYSQLI_REPORT_OFF);
 
-// Global Variables
-$wa = '971500000000';$mail = 'export@nooralhibatrading.com';
-
-// 1. Database Connection (Ensure correct path to your config)
-include 'config/connect.php';
+// 1. Database Connection
+require_once __DIR__ . '/../config/connect.php';
 $ok = isset($conn) && !$conn->connect_error;
 
 // 2. Global Functions
 if (!function_exists('q')) {
     function q($sql) {
-        global $conn,$ok;
+        global $conn, $ok;
         $r = [];
-        if ($ok && ($res = @$conn->query($sql))) while ($x =$res->fetch_assoc()) $r[] =$x;
+        if ($ok && ($res = @$conn->query($sql))) while ($x = $res->fetch_assoc()) $r[] = $x;
         return $r;
     }
 }
@@ -25,23 +22,22 @@ if (!function_exists('e')) {
     function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 }
 if (!function_exists('txt')) {
-    function txt($s,$n = 0) {
+    function txt($s, $n = 0) {
         $s = trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags((string)$s))));
-        if (preg_match('/Bhagirath|Khetarpal|candle-making/i', $s)) return '';
-        return $n ? mb_strimwidth($s, 0, $n, '...') :$s;
+        return $n ? mb_strimwidth($s, 0, $n, '...') : $s;
     }
 }
 if (!function_exists('img')) {
-    function img($f, $d,$fb) {
+    function img($f, $d, $fb) {
         global $site;
         $f = trim((string)$f);
-        if ($f === '') return$fb;
-        if (preg_match('#^https?://#', $f)) return$f;
+        if ($f === '') return $fb;
+        if (preg_match('#^https?://#', $f)) return $f;
         
         $c = ltrim($f, '/');
         $b = basename($c);
-        $base_url =$site ?? "http://localhost/projects/nooralhiba/"; 
-        $doc_root =$_SERVER['DOCUMENT_ROOT'] . "/projects/nooralhiba/";
+        $base_url = $site ?? "http://localhost/projects/nooralhiba/"; 
+        $doc_root = $_SERVER['DOCUMENT_ROOT'] . "/projects/nooralhiba/";
         
         $possible_paths = [
             $c, "admin/" . $c, "uploads/$d/$b", "admin/uploads/$d/$b", 
@@ -49,59 +45,84 @@ if (!function_exists('img')) {
             "admin/assets/img/uploads/$d/$b", "admin/assets/img/uploads/$b"
         ];
         
-        foreach ($possible_paths as$p) {
-            if (is_file($doc_root .$p)) return $base_url .$p;
+        foreach ($possible_paths as $p) {
+            if (is_file($doc_root . $p)) return $base_url . $p;
         }
         return $fb;
     }
 }
-
-// YEH FUNCTION MISSING THA - ADDED NOW
 if (!function_exists('un')) {
-    function un($id,$w = 800) { 
+    function un($id, $w = 800) { 
         return "https://images.unsplash.com/$id?auto=format&fit=crop&w=$w&q=80"; 
     }
 }
-
 if (!function_exists('mark')) {
     function mark($w = 46) {
         return '<svg viewBox="290 55 815 710" width="' . $w . '" aria-hidden="true"><path fill="currentColor" d="M325 476l78-56v228l-78 40zM425 352l123-90v346l-123 32zM570 150l123-88v535l-123 8z"/><path fill="none" stroke="currentColor" stroke-width="7" d="M697 68l118 84v451l-118-6zM838 262l122 90v284l-120-29zM984 420l76 56v206l-76-37z"/><path fill="#D6AC56" d="M298 757C500 650 900 650 1097 757 900 700 500 700 298 757z"/></svg>';
     }
 }
 
-// 3. Fetch Categories for Dropdown
+// 3. Dynamic Global Settings (Email, Phone) from `contacts` table
+$wa = '971500000000'; 
+$mail = 'export@nooralhibatrading.com'; 
+
+if ($ok) {
+    $table_check_contacts = q("SHOW TABLES LIKE 'contacts'");
+    if (count($table_check_contacts) > 0) {
+        $contact_res = q("SELECT email, phone FROM contacts LIMIT 1");
+        if (!empty($contact_res)) {
+            $mail = !empty($contact_res[0]['email']) ? $contact_res[0]['email'] : $mail;
+            $wa_raw = !empty($contact_res[0]['phone']) ? $contact_res[0]['phone'] : $wa;
+            $wa = preg_replace('/[^0-9]/', '', $wa_raw); 
+            $disp_phone = !empty($contact_res[0]['phone']) ? $contact_res[0]['phone'] : '+971 50 000 0000';
+        }
+    }
+}
+$disp_phone = $disp_phone ?? '+971 50 000 0000';
+
+// 4. Fetch Categories for Dropdown
 $nav_cats = [];
-if ($ok) {$db_cats = q("SELECT id, category_name, slug FROM categories WHERE status=1");
+if ($ok) {
+    $db_cats = q("SELECT id, categories, slug_url FROM categories WHERE status=1");
     if (!empty($db_cats)) {
-        foreach ($db_cats as $c) {$subs = q("SELECT subcat_name, slug FROM subcategories WHERE cat_id=".$c['id']." AND status=1");
-            $nav_cats[$c['slug']] = ['name' => $c['category_name'], 'subs' =>$subs];
+        foreach ($db_cats as $c) {
+            $subs = q("SELECT categories, slug_url FROM sub_categories WHERE cate_id=".$c['id']." AND status=1");
+            $nav_cats[$c['slug_url']] = ['name' => $c['categories'], 'subs' => $subs];
         }
     }
 }
 
-// 4. SMART DYNAMIC SEO & SCHEMA ENGINE
+// 5. SMART DYNAMIC SEO & SCHEMA ENGINE (Separated `meta` and `page_schemas` tables)
 $current_page_name = basename($_SERVER['PHP_SELF']);
 
-// Agar variables pehle se set nahi hain (i.e. static pages hain), toh global table se uthao
-if (!isset($meta_title)) {
-    $meta_title = 'Noor Al Hiba Trading LLC \vert{} Global Import & Export';$meta_desc = 'Premium export-grade spices, dry fruits, and agro commodities for Dubai, GCC, and African markets.';
-    $meta_key = 'import export dubai, spices wholesale, dry fruits supplier africa';$schema = '';
+if (!isset($meta_title) || empty($meta_title)) {
+    $meta_title = 'Noor Al Hiba Trading LLC | Global Import & Export';
+    $meta_desc = 'Premium export-grade spices, dry fruits, and agro commodities for Dubai, GCC, and African markets.';
+    $meta_key = 'import export dubai, spices wholesale, dry fruits supplier africa';
+    $schema = '';
 
-    if ($ok) {$seo_data = q("SELECT meta_title, meta_desc, meta_keyword, schema_markup FROM meta_and_page_schema WHERE page_name = '" . $conn->real_escape_string($current_page_name) . "' LIMIT 1");
-        
-        if (!empty($seo_data)) {
-            $meta_title = !empty($seo_data[0]['meta_title']) ? $seo_data[0]['meta_title'] :$meta_title;
-            $meta_desc  = !empty($seo_data[0]['meta_desc']) ? $seo_data[0]['meta_desc'] :$meta_desc;
-            $meta_key   = !empty($seo_data[0]['meta_keyword']) ? $seo_data[0]['meta_keyword'] :$meta_key;
-            $schema     = !empty($seo_data[0]['schema_markup']) ?$seo_data[0]['schema_markup'] : '';
+    if ($ok) {
+        // Fetch from `meta` table using page_url
+        $meta_data = q("SELECT meta_title, meta_desc, meta_key FROM meta WHERE page_url = '" . $conn->real_escape_string($current_page_name) . "' LIMIT 1");
+        if (!empty($meta_data)) {
+            $meta_title = !empty($meta_data[0]['meta_title']) ? $meta_data[0]['meta_title'] : $meta_title;
+            $meta_desc  = !empty($meta_data[0]['meta_desc']) ? $meta_data[0]['meta_desc'] : $meta_desc;
+            $meta_key   = !empty($meta_data[0]['meta_key']) ? $meta_data[0]['meta_key'] : $meta_key;
+        }
+
+        // Fetch from `page_schemas` table using page_url
+        $schema_data = q("SELECT schema_markup FROM page_schemas WHERE page_url = '" . $conn->real_escape_string($current_page_name) . "' LIMIT 1");
+        if (!empty($schema_data)) {
+            $schema = !empty($schema_data[0]['schema_markup']) ? $schema_data[0]['schema_markup'] : '';
         }
     }
 }
 
-// Fallback safety to prevent empty variables
-$meta_title =$meta_title ?: 'Noor Al Hiba Trading LLC';
-$meta_desc  =$meta_desc ?: '';
-$meta_key   =$meta_key ?: '';
+// Fallback safety
+$meta_title = $meta_title ?: 'Noor Al Hiba Trading LLC';
+$meta_desc  = $meta_desc ?: '';
+$meta_key   = $meta_key ?: '';
+$schema     = $schema ?? '';
 
 // Canonical URL generator
 $protocol = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
@@ -220,7 +241,7 @@ $canonical_url = $protocol . $_SERVER['HTTP_HOST'] . parse_url($_SERVER['REQUEST
         transform: translateY(-2px);
     }
 
-    /* Topbar Styles */
+    /* Topbar Dynamic Contact */
     .topbar {
         background: var(--ink2);
         color: rgba(255, 255, 255, 0.8);
@@ -302,6 +323,7 @@ $canonical_url = $protocol . $_SERVER['HTTP_HOST'] . parse_url($_SERVER['REQUEST
         font-weight: 600;
     }
 
+    /* Navbar List Hover System Fix */
     nav {
         display: flex;
         align-items: center;
@@ -344,7 +366,7 @@ $canonical_url = $protocol . $_SERVER['HTTP_HOST'] . parse_url($_SERVER['REQUEST
         width: 100%;
     }
 
-    /* Dropdown Structure */
+    /* Dropdown Level 1 (Products -> Categories) */
     .dropdown-menu {
         position: absolute;
         top: 100%;
@@ -369,13 +391,15 @@ $canonical_url = $protocol . $_SERVER['HTTP_HOST'] . parse_url($_SERVER['REQUEST
         transform: translateY(0);
     }
 
-    .dropdown-menu li {
+    .dropdown-menu>li {
         padding: 0 10px;
         display: block;
         width: 100%;
+        position: relative;
     }
 
-    .dropdown-menu li a {
+    /* position relative is crucial for nested dropdown */
+    .dropdown-menu>li>a {
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -388,12 +412,12 @@ $canonical_url = $protocol . $_SERVER['HTTP_HOST'] . parse_url($_SERVER['REQUEST
         white-space: nowrap;
     }
 
-    .dropdown-menu li a:hover {
+    .dropdown-menu>li>a:hover {
         background: var(--sand);
         color: var(--bronze);
     }
 
-    /* Nested Dropdown */
+    /* Nested Dropdown Level 2 (Categories -> Subcategories) */
     .sub-dropdown-menu {
         position: absolute;
         top: 0;
@@ -410,17 +434,36 @@ $canonical_url = $protocol . $_SERVER['HTTP_HOST'] . parse_url($_SERVER['REQUEST
         transition: all 0.3s ease;
         margin-left: 2px;
         display: block;
+        z-index: 102;
     }
 
-    .dropdown-menu li.has-sub-dropdown:hover>.sub-dropdown-menu {
+    /* Magic Trigger for Level 2 */
+    .dropdown-menu>li.has-sub-dropdown:hover>.sub-dropdown-menu {
         opacity: 1;
         visibility: visible;
         transform: translateX(0);
     }
 
-    .sub-dropdown-menu li {
+    .sub-dropdown-menu>li {
         display: block;
         width: 100%;
+        padding: 0 10px;
+    }
+
+    .sub-dropdown-menu>li>a {
+        display: block;
+        padding: 10px 15px;
+        color: var(--ink);
+        font-size: 0.85rem;
+        font-weight: 500;
+        border-radius: 4px;
+        transition: background 0.2s, color 0.2s;
+        white-space: nowrap;
+    }
+
+    .sub-dropdown-menu>li>a:hover {
+        background: var(--sand);
+        color: var(--bronze);
     }
 
     .tg {
@@ -536,10 +579,17 @@ $canonical_url = $protocol . $_SERVER['HTTP_HOST'] . parse_url($_SERVER['REQUEST
             display: block;
         }
 
-        .dropdown-menu li a {
+        .dropdown-menu>li>a,
+        .sub-dropdown-menu>li>a {
             border-bottom: 1px dashed var(--line);
             padding: 12px 0;
             white-space: normal;
+        }
+
+        .dropdown-menu>li>a:hover,
+        .sub-dropdown-menu>li>a:hover {
+            background: transparent;
+            color: var(--bronze);
         }
 
         nav .btn {
@@ -571,14 +621,14 @@ $canonical_url = $protocol . $_SERVER['HTTP_HOST'] . parse_url($_SERVER['REQUEST
                     </svg>
                     <?= e($mail) ?>
                 </a>
-                <a href="tel:+<?= e($wa) ?>">
+                <a href="tel:<?= e($wa) ?>">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <path
                             d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
                         </path>
                     </svg>
-                    +<?= e($wa) ?>
+                    <?= e($disp_phone) ?>
                 </a>
             </div>
             <div class="top-links">
@@ -600,6 +650,7 @@ $canonical_url = $protocol . $_SERVER['HTTP_HOST'] . parse_url($_SERVER['REQUEST
                     <li><a href="index.php">Home</a></li>
                     <li><a href="about.php">About</a></li>
 
+                    <!-- Products Dropdown (With Hover fixes applied) -->
                     <li class="has-dropdown">
                         <a href="products.php">
                             Products
@@ -611,8 +662,9 @@ $canonical_url = $protocol . $_SERVER['HTTP_HOST'] . parse_url($_SERVER['REQUEST
                         <ul class="dropdown-menu">
                             <li><a href="products.php" style="color:var(--gold); font-weight:700;">View All Products</a>
                             </li>
+
                             <?php foreach ($nav_cats as $slug => $cData): ?>
-                            <li class="has-sub-dropdown">
+                            <li class="<?= !empty($cData['subs']) ? 'has-sub-dropdown' : '' ?>">
                                 <a href="products.php?cat=<?= e($slug) ?>">
                                     <?= e($cData['name']) ?>
                                     <?php if(!empty($cData['subs'])): ?>
@@ -624,11 +676,12 @@ $canonical_url = $protocol . $_SERVER['HTTP_HOST'] . parse_url($_SERVER['REQUEST
                                     <?php endif; ?>
                                 </a>
 
+                                <!-- Inner Subcategory Dropdown -->
                                 <?php if(!empty($cData['subs'])): ?>
                                 <ul class="sub-dropdown-menu">
                                     <?php foreach ($cData['subs'] as $sub): ?>
                                     <li><a
-                                            href="products.php?cat=<?= e($slug) ?>&q=<?= urlencode($sub['subcat_name']) ?>"><?= e($sub['subcat_name']) ?></a>
+                                            href="products.php?cat=<?= e($slug) ?>&q=<?= urlencode($sub['categories']) ?>"><?= e($sub['subcat_name']) ?></a>
                                     </li>
                                     <?php endforeach; ?>
                                 </ul>
@@ -641,7 +694,7 @@ $canonical_url = $protocol . $_SERVER['HTTP_HOST'] . parse_url($_SERVER['REQUEST
                     <li><a href="service.php">Services</a></li>
                     <li><a href="blog.php">Insights</a></li>
                 </ul>
-                <a href="contact-us.php" class="btn">Request a quote</a>
+                <a href="contact.php" class="btn">Request a quote</a>
             </nav>
         </div>
     </header>

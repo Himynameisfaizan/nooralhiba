@@ -1,6 +1,4 @@
 <?php
-/** NOOR AL HIBA TRADING LLC - Products Page */
-$page_title = 'Export Products | Noor Al Hiba Trading LLC';
 
 // 1. Include Header
 include_once 'includes/header.php';

@@ -151,50 +151,7 @@ $about_img = img($A[0]['image_url'] ?? '', 'about_us', un('photo-1586528116311-a
     </section>
 
     <!-- Footer -->
-    <div class="band"></div>
-    <footer class="dk">
-        <div class="wrap">
-            <div class="fg">
-                <div>
-                    <a class="brand" href="index.php" style="color:var(--gold)"><?= mark(44) ?><span><b>NOOR AL
-                                HIBA</b><small>TRADING LLC</small></span></a>
-                    <p>An international import-export house connecting spices, dry fruits, oil seeds and agro
-                        commodities with buyers in Dubai, the Middle East and Africa.</p>
-                </div>
-                <div>
-                    <h4>Navigate</h4>
-                    <ul>
-                        <?php foreach ($nav as $url => $l): ?>
-                        <li><a href="<?= $url ?>"><?= $l ?></a></li>
-                        <?php endforeach; ?>
-                    </ul>
-                </div>
-                <div>
-                    <h4>Key export lines</h4>
-                    <ul>
-                        <li>Whole spices: chilli, pepper</li>
-                        <li>Cashew W180, W240, W320</li>
-                        <li>Almonds, pistachios, raisins</li>
-                        <li>Cumin and coriander seeds</li>
-                        <li>Saffron and cardamom</li>
-                    </ul>
-                </div>
-                <div>
-                    <h4>Trade desk</h4>
-                    <ul>
-                        <li>Dubai, UAE</li>
-                        <li>Azadpur, Delhi, India</li>
-                        <li><a href="mailto:<?= e($mail) ?>"><?= e($mail) ?></a></li>
-                        <li>Mon to Sat, 9:00 to 19:00 (GST)</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="fb">
-                <span>© <?= date('Y') ?> Noor Al Hiba Trading LLC. All rights reserved.</span>
-                <span class="ar">نور الهبة للتجارة ذ.م.م</span>
-            </div>
-        </div>
-    </footer>
+    <?php include 'includes/footer.php'?>
 
     <!-- WhatsApp CTA -->
     <a class="wa" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"

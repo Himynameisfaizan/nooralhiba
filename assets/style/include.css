@@ -165,7 +165,7 @@ h4 {
   font-weight: 600;
 }
 
-/* Navbar List Hover System Fix */
+/* Navbar Hover System */
 nav {
   display: flex;
   align-items: center;
@@ -208,7 +208,7 @@ nav>ul>li:hover>a:not(.btn)::after {
   width: 100%;
 }
 
-/* Dropdown Level 1 (Products -> Categories) */
+/* Dropdown Level 1 */
 .dropdown-menu {
   position: absolute;
   top: 100%;
@@ -240,7 +240,6 @@ nav li.has-dropdown:hover>.dropdown-menu {
   position: relative;
 }
 
-/* position relative is crucial for nested dropdown */
 .dropdown-menu>li>a {
   display: flex;
   justify-content: space-between;
@@ -259,7 +258,7 @@ nav li.has-dropdown:hover>.dropdown-menu {
   color: var(--bronze);
 }
 
-/* Nested Dropdown Level 2 (Categories -> Subcategories) */
+/* Nested Dropdown Level 2 */
 .sub-dropdown-menu {
   position: absolute;
   top: 0;
@@ -279,7 +278,6 @@ nav li.has-dropdown:hover>.dropdown-menu {
   z-index: 102;
 }
 
-/* Magic Trigger for Level 2 */
 .dropdown-menu>li.has-sub-dropdown:hover>.sub-dropdown-menu {
   opacity: 1;
   visibility: visible;

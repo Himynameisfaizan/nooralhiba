@@ -184,7 +184,7 @@ if (!isset($canonical_url)) {
         href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Marcellus&display=swap"
         rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="assets/style/style.css">
+    <link rel="stylesheet" href="assets/style/style.css?v=<?php echo time() ?>">
     <link rel="stylesheet" href="assets/style/about.css">
     <link rel="stylesheet" href="assets/style/blog.css">
     <link rel="stylesheet" href="assets/style/contact.css">
@@ -228,14 +228,14 @@ if (!isset($canonical_url)) {
     <!-- Main Header -->
     <header class="site-header" id="top">
         <div class="wrap nav-wrap">
-            <a class="brand" href="index.php">
+            <a class="brand" href="./">
                 <?= mark(46) ?>
                 <span><b>NOOR AL HIBA</b><small>TRADING LLC</small></span>
             </a>
             <button class="tg" aria-label="Menu" aria-expanded="false"><i></i></button>
             <nav>
                 <ul>
-                    <li><a href="index.php">Home</a></li>
+                    <li><a href="./">Home</a></li>
                     <li><a href="about.php">About</a></li>
 
                     <li class="has-dropdown">

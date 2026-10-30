@@ -1,100 +1,382 @@
 <?php
+/** NOOR AL HIBA TRADING LLC - Products Page */
 
-// 1. Include Header
-include_once 'includes/header.php';
+// 1. Database Connect (Header se pehle SEO aur data nikalne ke liye)
+require_once __DIR__ . '/config/connect.php';
+$ok = isset($conn) && !$conn->connect_error;
 
 // ---- Pagination & Filters ----
-$limit = 9;
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-if($page < 1) $page = 1;
+$limit = 9; // 3x3 Grid
+$page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
+if ($page < 1) $page = 1;
 $offset = ($page - 1) * $limit;
 
 $search_query = isset($_GET['q']) ? trim($_GET['q']) : '';
-$cat_filter = isset($_GET['cat']) ? trim($_GET['cat']) : '';
 
 // Variables
-$categories = [];
+$categories_list = [];
 $products = [];
 $total_pages = 1;
+$pageTitle = "Our Products"; 
 
 if ($ok) {
-    // Check if tables exist
-    $table_check = q("SHOW TABLES LIKE 'products'");
-    if (count($table_check) > 0) {
-        // Fetch Categories
-        $db_cats = q("SELECT * FROM categories WHERE status=1");
-        foreach($db_cats as $c) {
-            $subs = q("SELECT * FROM subcategories WHERE cat_id=".$c['id']." AND status=1");
-            $categories[$c['slug_url']] = [
-                'name' => $c['categories'],
-                'subs' => array_column($subs, 'subcat_name', 'slug')
-            ];
+    // A. SETTING DYNAMIC SEO FOR HEADER.PHP
+    $meta_title = "Our Products | Noor Al Hiba Trading LLC";
+    $meta_desc  = "Browse our premium range of export-grade spices, dry fruits, seeds, and agro commodities available for wholesale and export from Dubai.";
+    $meta_key   = "export products dubai, wholesale spices, dry fruits bulk supplier";
+    $schema     = '';
+
+    $seo_res = @$conn->query("SELECT meta_title, meta_desc, meta_key FROM meta WHERE page_url = 'products.php' LIMIT 1");
+    if ($seo_res && $seo_res->num_rows > 0) {
+        $seo_data = $seo_res->fetch_assoc();
+        $meta_title = !empty($seo_data['meta_title']) ? $seo_data['meta_title'] : $meta_title;
+        $meta_desc  = !empty($seo_data['meta_desc']) ? $seo_data['meta_desc'] : $meta_desc;
+        $meta_key   = !empty($seo_data['meta_key']) ? $seo_data['meta_key'] : $meta_key;
+    }
+    
+    // Schema
+    $schema_res = @$conn->query("SELECT schema_markup FROM page_schemas WHERE page_url = 'products.php' LIMIT 1");
+    if ($schema_res && $schema_res->num_rows > 0) {
+        $schema = $schema_res->fetch_assoc()['schema_markup'] ?? '';
+    }
+
+    if ($search_query) {
+        $pageTitle = "Search: " . htmlspecialchars($search_query, ENT_QUOTES, 'UTF-8');
+        $meta_title = "Search Results for '" . htmlspecialchars($search_query, ENT_QUOTES, 'UTF-8') . "' | Noor Al Hiba Trading LLC";
+    }
+
+    // B. Fetch Categories for Sidebar (FIXED: Using Exact DB Columns)
+    $db_all_cats = @$conn->query("SELECT categories as category_name, slug_url as slug FROM categories WHERE status=1");
+    if ($db_all_cats && $db_all_cats->num_rows > 0) {
+        while ($c = $db_all_cats->fetch_assoc()) {
+            $categories_list[] = $c;
         }
+    }
         
-        // Fetch Products with Search & Pagination
-        $where = "WHERE is_disabled = 0";
-        if($search_query) $where .= " AND pro_name LIKE '%" . $conn->real_escape_string($search_query) . "%'";
-        if($cat_filter) $where .= " AND category_slug = '" . $conn->real_escape_string($cat_filter) . "'";
-        
-        $total_items = q("SELECT COUNT(id) as c FROM products $where")[0]['c'] ?? 0;
+    // C. Fetch ALL Products with Search & Pagination
+    $where = "WHERE is_disabled = 0";
+    if ($search_query) {
+        $where .= " AND pro_name LIKE '%" . $conn->real_escape_string($search_query) . "%'";
+    }
+    
+    // Total Count
+    $count_res = @$conn->query("SELECT COUNT(id) as c FROM products $where");
+    if ($count_res) {
+        $total_items = $count_res->fetch_assoc()['c'] ?? 0;
         $total_pages = ceil($total_items / $limit);
-        
-        $db_prods = q("SELECT * FROM products $where ORDER BY id DESC LIMIT $limit OFFSET $offset");
-        foreach($db_prods as $p) {
-            // Fix for image string splitting
+    }
+    
+    // Fetch Data
+    $db_prods = @$conn->query("SELECT pro_name, short_desc, pro_img, slug_url FROM products $where ORDER BY id DESC LIMIT $limit OFFSET $offset");
+    if ($db_prods && $db_prods->num_rows > 0) {
+        while ($p = $db_prods->fetch_assoc()) {
             $f = preg_split('/[,|;"]+/', trim(stripslashes((string)$p['pro_img']), '[]" '))[0];
-            
             $products[] = [
-                txt($p['pro_name']), 
-                $p['category_slug'] ?? 'Export Grade', 
-                txt($p['short_desc']), 
-                img($f, 'products', un('photo-1508061253366-f7da158b6d46', 700)), // Image correctly passing via new header function
-                $p['slug_url'] // FIX: Using 'slug_url' instead of 'slug'
+                'name' => trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags((string)$p['pro_name'])))),
+                'desc' => trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags((string)$p['short_desc'])))),
+                'img' => $f,
+                'slug' => $p['slug_url']
             ];
         }
     }
 }
 
-// ---- Fallback Data (If DB is empty) ----
-if(empty($categories)) {
-    $categories = [
-        'dry-fruits' => ['name' => 'Dry Fruits & Nuts', 'subs' => ['Almonds', 'Cashews', 'Raisins', 'Pistachios']],
-        'whole-spices' => ['name' => 'Whole Spices', 'subs' => ['Red Chilli', 'Cardamom', 'Black Pepper', 'Cloves']],
-        'oil-seeds' => ['name' => 'Oil Seeds', 'subs' => ['Cumin Seeds', 'Coriander Seeds', 'Sesame Seeds']]
-    ];
+// 2. INCLUDE HEADER
+include_once 'includes/header.php';
+?>
+
+<style>
+/* Layout: 280px (Sidebar Left) aur 1fr (Products Right) */
+.cat-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 40px;
+    padding: clamp(40px, 6vw, 80px) 0;
+    align-items: start;
 }
 
-if(empty($products) && empty($search_query) && empty($cat_filter)) {
-    $FProds = [
-        ['Premium California Almonds', 'dry-fruits', 'Whole kernels, moisture-controlled, packed for wholesale.', 'photo-1508061253366-f7da158b6d46', 'almonds'],
-        ['White Cashew Kernels W320', 'dry-fruits', 'Uniformly graded ivory kernels in 10 kg and 20 kg tins.', 'photo-1563292769-4e05b684851a', 'cashews'],
-        ['Guntur Dry Red Chilli', 'whole-spices', 'High-pungency, deep-colour chillies for global spice processors.', 'photo-1588252303782-cb80119abd6d', 'red-chilli'],
-        ['Bold Green Cardamom 8mm+', 'whole-spices', 'Aromatic deep-green pods sourced direct from estates.', 'photo-1596040033229-a9821ebd058d', 'cardamom'],
-        ['Golden Seedless Raisins', 'dry-fruits', 'Double-cleaned, low-moisture raisins for bakery & confectionery.', 'photo-1596591606975-97ee5cef3a1e', 'raisins'],
-        ['Malabar Black Pepper', 'whole-spices', 'Machine-cleaned, high-piperine peppercorns meeting ASTA norms.', 'photo-1532336414038-cf19250c5757', 'black-pepper'],
-    ];
-    foreach($FProds as $fp) {
-        $products[] = [$fp[0], $fp[1], $fp[2], un($fp[3], 700), $fp[4]];
+/* 3 Products Per Row Grid */
+.pg {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+/* Product Card */
+.pc {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 14px 14px 22px;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.4s var(--e), box-shadow 0.4s;
+}
+
+.pc:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.06);
+    border-color: var(--gold);
+}
+
+.pc .im {
+    overflow: hidden;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    position: relative;
+    background: var(--paper);
+}
+
+.pc img {
+    width: 100%;
+    aspect-ratio: 4/4;
+    object-fit: cover;
+    transition: transform .9s var(--e);
+}
+
+.pc:hover img {
+    transform: scale(1.07);
+}
+
+.pc small {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--bronze);
+    font-weight: 600;
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.pc h3 {
+    font-size: 1.25rem;
+    margin-bottom: 8px;
+    color: var(--ink);
+    line-height: 1.3;
+}
+
+.pc p {
+    font-size: .88rem;
+    color: var(--mut);
+    margin-bottom: 16px;
+    line-height: 1.6;
+}
+
+.pc .view-btn {
+    margin-top: auto;
+    align-self: flex-start;
+    background: 0;
+    border: 0;
+    border-bottom: 1.5px solid var(--gold);
+    padding: 2px 0;
+    font: 600 .9rem/1.4 'Hanken Grotesk', sans-serif;
+    color: var(--ink);
+    cursor: pointer;
+    transition: color .3s, padding .3s;
+    display: inline-block;
+}
+
+.pc:hover .view-btn {
+    color: var(--bronze);
+    padding-right: 8px;
+}
+
+/* Sidebar */
+.sidebar {
+    position: sticky;
+    top: 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.sb-widget {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 24px;
+}
+
+.sb-widget h3 {
+    font-size: 1.15rem;
+    margin-bottom: 16px;
+    color: var(--ink);
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 10px;
+}
+
+.search-form {
+    display: flex;
+    gap: 8px;
+}
+
+.search-form input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    font: inherit;
+    font-size: 0.9rem;
+    outline: none;
+    background: var(--paper);
+}
+
+.search-form input:focus {
+    border-color: var(--gold);
+}
+
+.search-form button {
+    background: var(--ink);
+    border: none;
+    color: #fff;
+    padding: 0 16px;
+    border-radius: var(--r);
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.search-form button:hover {
+    background: var(--bronze);
+}
+
+.cat-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.cat-list>li {
+    margin-bottom: 10px;
+}
+
+.cat-list>li>a {
+    display: block;
+    padding: 10px 15px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--mut);
+    transition: .3s;
+}
+
+.cat-list>li>a:hover,
+.cat-list>li>a.active {
+    background: var(--sand);
+    color: var(--ink);
+    border-color: var(--gold);
+}
+
+/* RFQ Banner */
+.rfq-banner {
+    background: var(--ink2);
+    color: #fff;
+    text-align: center;
+    border-radius: var(--r);
+    padding: 30px 20px;
+    border-bottom: 4px solid var(--gold);
+}
+
+.rfq-banner h4 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: var(--gold);
+}
+
+.rfq-banner p {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 20px;
+}
+
+.rfq-banner .btn {
+    width: 100%;
+    justify-content: center;
+    background: #25D366;
+    border-color: #25D366;
+    color: #fff;
+}
+
+.rfq-banner .btn:hover {
+    background: #128C7E;
+    border-color: #128C7E;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 50px;
+}
+
+.pagination a,
+.pagination span {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: 0.3s;
+}
+
+.pagination a {
+    border: 1px solid var(--line);
+    color: var(--ink);
+    background: #fff;
+}
+
+.pagination a:hover {
+    border-color: var(--bronze);
+    color: var(--bronze);
+}
+
+.pagination .active {
+    background: var(--bronze);
+    color: #fff;
+    border-color: var(--bronze);
+}
+
+.pagination .nav-arr {
+    width: auto;
+    padding: 0 16px;
+    border-radius: 999px;
+}
+
+@media(max-width: 960px) {
+    .cat-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        position: static;
+    }
+
+    .pg {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
-?>
 
-<!-- Set Title for Breadcrumb -->
-<?php 
-$pageTitle = "Our Products"; 
-if($cat_filter) {
-    $pageTitle = (isset($categories[$cat_filter])) ? $categories[$cat_filter]['name'] : "Products";
-}
-if($search_query) {
-    $pageTitle = "Search: " . e($search_query);
-}
-?>
+@media(max-width: 600px) {
+    .sidebar {
+        grid-template-columns: 1fr;
+    }
 
-<!-- Include Breadcrumb -->
+    .pg {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<!-- 3. BREADCRUMB -->
 <?php include_once 'includes/breadcrumb.php'; ?>
 
-<!-- Product Section -->
-<div class="wrap prod-layout">
+<!-- 4. PAGE CONTENT -->
+<div class="wrap cat-layout">
 
     <!-- LEFT COLUMN: Sidebar -->
     <aside class="sidebar">
@@ -103,40 +385,29 @@ if($search_query) {
         <div class="sb-widget rv">
             <h3>Search Products</h3>
             <form class="search-form" method="GET" action="products.php">
-                <input type="text" name="q" placeholder="E.g. Cashew W320..." value="<?= e($search_query) ?>">
+                <input type="text" name="q" placeholder="E.g. Cashew..." value="<?= e($search_query) ?>">
                 <button type="submit">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
+                    <i class="fa fa-search"></i>
                 </button>
             </form>
         </div>
 
-        <!-- Categories Widget -->
+        <!-- Categories List Widget (NOW FETCHED FROM DB & LINKS TO category.php) -->
         <div class="sb-widget rv">
             <h3>Categories</h3>
             <ul class="cat-list">
-                <li><a href="products.php" class="<?= $cat_filter == '' ? 'active' : '' ?>">All Products</a></li>
-                <?php foreach($categories as $slug => $cData): ?>
+                <li><a href="products.php" class="active">All Products</a></li>
+                <?php if(!empty($categories_list)): ?>
+                <?php foreach($categories_list as $c): ?>
                 <li>
-                    <a href="products.php?cat=<?= e($slug) ?>" class="<?= $cat_filter == $slug ? 'active' : '' ?>">
-                        <?= e($cData['name']) ?>
+                    <a href="category.php?slug=<?= e($c['slug']) ?>">
+                        <?= e($c['category_name']) ?>
                     </a>
-                    <!-- Subcategories -->
-                    <?php if(!empty($cData['subs'])): ?>
-                    <ul class="sub-list">
-                        <?php foreach($cData['subs'] as $subSlug => $subName): ?>
-                        <li>
-                            <a href="products.php?cat=<?= e($slug) ?>&q=<?= urlencode($subName) ?>">-
-                                <?= e($subName) ?></a>
-                        </li>
-                        <?php endforeach; ?>
-                    </ul>
-                    <?php endif; ?>
                 </li>
                 <?php endforeach; ?>
+                <?php else: ?>
+                <li><a href="#">No categories found</a></li>
+                <?php endif; ?>
             </ul>
         </div>
 
@@ -145,15 +416,9 @@ if($search_query) {
             <h4>Need Bulk Export?</h4>
             <p>Contact our trade desk directly for FOB/CIF pricing and shipping schedules.</p>
             <a target="_blank"
-                href="https://wa.me/<?= e($wa) ?>?text=Hello%20Noor%20Al%20Hiba,%20we%20need%20a%20bulk%20quotation."
+                href="https://wa.me/<?= e($wa ?? '971500000000') ?>?text=Hello%20Noor%20Al%20Hiba,%20we%20need%20a%20bulk%20quotation."
                 class="btn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2.5a9.5 9.5 0 0 0-8.2 14.300L2.5 21.500l4.8-1.3A9.5 9.5 0 1 0 12 2.5z" />
-                    <circle cx="8" cy="12" r="1.3" fill="#fff" />
-                    <circle cx="12" cy="12" r="1.3" fill="#fff" />
-                    <circle cx="16" cy="12" r="1.3" fill="#fff" />
-                </svg>
-                Chat on WhatsApp
+                <i class="fa-brands fa-whatsapp me-2" style="font-size: 1.2rem;"></i> Chat on WhatsApp
             </a>
         </div>
 
@@ -163,24 +428,27 @@ if($search_query) {
     <main>
         <?php if(empty($products)): ?>
         <div class="rv"
-            style="text-align:center; padding: 40px; background: #fff; border-radius: var(--r); border: 1px solid var(--line);">
+            style="text-align:center; padding: 60px; background: #fff; border-radius: var(--r); border: 1px solid var(--line);">
+            <i class="fa-solid fa-box-open mb-3" style="font-size: 3rem; color: var(--line);"></i>
             <h3>No products found</h3>
-            <p style="color: var(--mut); margin-top: 10px;">We couldn't find any products matching your criteria.</p>
-            <a href="products.php" class="btn" style="margin-top:20px;">Clear Filters</a>
+            <p style="color: var(--mut); margin-top: 10px;">We couldn't find any products matching your search.</p>
+            <a href="products.php" class="btn" style="margin-top:20px;">Clear Search</a>
         </div>
         <?php else: ?>
         <div class="pg">
-            <?php foreach ($products as $p): ?>
+            <?php foreach ($products as $p): 
+                    $img_url = img($p['img'], 'products', un('photo-1508061253366-f7da158b6d46', 700));
+                ?>
             <article class="pc rv">
                 <div class="im">
-                    <a href="product-details.php?slug=<?= e($p[4] ?? 'demo') ?>">
-                        <img src="<?= e(is_array($p) ? $p[3] : '') ?>" alt="<?= e($p[0]) ?>" loading="lazy">
+                    <a href="product-details.php?slug=<?= e($p['slug']) ?>">
+                        <img src="<?= e($img_url) ?>" alt="<?= e($p['name']) ?>" loading="lazy">
                     </a>
                 </div>
-                <small><?= e(str_replace('-', ' ', $p[1])) ?></small>
-                <h3><a href="product-details.php?slug=<?= e($p[4] ?? 'demo') ?>"><?= e($p[0]) ?></a></h3>
-                <p><?= e(mb_strimwidth($p[2], 0, 90, '...')) ?></p>
-                <a href="product-details.php?slug=<?= e($p[4] ?? 'demo') ?>" class="view-btn">View Details &rarr;</a>
+                <small>Export Grade</small>
+                <h3><a href="product-details.php?slug=<?= e($p['slug']) ?>"><?= e($p['name']) ?></a></h3>
+                <p><?= e(mb_strimwidth($p['desc'], 0, 85, '...')) ?></p>
+                <a href="product-details.php?slug=<?= e($p['slug']) ?>" class="view-btn">View Details &rarr;</a>
             </article>
             <?php endforeach; ?>
         </div>
@@ -189,7 +457,7 @@ if($search_query) {
         <?php if($total_pages > 1): ?>
         <div class="pagination rv">
             <?php if($page > 1): ?>
-            <a href="?page=<?= $page-1 ?><?= $cat_filter ? '&cat='.$cat_filter : '' ?><?= $search_query ? '&q='.$search_query : '' ?>"
+            <a href="?page=<?= $page-1 ?><?= $search_query ? '&q='.urlencode($search_query) : '' ?>"
                 class="nav-arr">Prev</a>
             <?php endif; ?>
 
@@ -197,19 +465,48 @@ if($search_query) {
             <?php if($i == $page): ?>
             <span class="active"><?= $i ?></span>
             <?php else: ?>
-            <a
-                href="?page=<?= $i ?><?= $cat_filter ? '&cat='.$cat_filter : '' ?><?= $search_query ? '&q='.$search_query : '' ?>"><?= $i ?></a>
+            <a href="?page=<?= $i ?><?= $search_query ? '&q='.urlencode($search_query) : '' ?>"><?= $i ?></a>
             <?php endif; ?>
             <?php endfor; ?>
 
             <?php if($page < $total_pages): ?>
-            <a href="?page=<?= $page+1 ?><?= $cat_filter ? '&cat='.$cat_filter : '' ?><?= $search_query ? '&q='.$search_query : '' ?>"
+            <a href="?page=<?= $page+1 ?><?= $search_query ? '&q='.urlencode($search_query) : '' ?>"
                 class="nav-arr">Next</a>
             <?php endif; ?>
         </div>
         <?php endif; ?>
         <?php endif; ?>
     </main>
+
 </div>
 
 <?php include_once 'includes/footer.php'; ?>
+
+<!-- Animation Script -->
+<script>
+(function() {
+    var els = document.querySelectorAll('.rv');
+    if (!('IntersectionObserver' in window)) {
+        els.forEach(function(x) {
+            x.classList.add('in')
+        });
+    } else {
+        var io = new IntersectionObserver(function(es) {
+            es.forEach(function(x) {
+                if (!x.isIntersecting) return;
+                x.target.classList.add('in');
+                io.unobserve(x.target);
+                setTimeout(function() {
+                    x.target.style.transitionDelay = ''
+                }, 500);
+            })
+        }, {
+            threshold: .05
+        });
+        els.forEach(function(el, i) {
+            el.style.transitionDelay = (i % 3) * 100 + 'ms';
+            io.observe(el);
+        });
+    }
+})();
+</script>

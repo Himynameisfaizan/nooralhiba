@@ -5,7 +5,8 @@
 require_once __DIR__ . '/config/connect.php';
 $ok = isset($conn) && !$conn->connect_error;
 
-$slug = isset($_GET['slug']) ? trim($_GET['slug']) : '';
+// FIX: Changed variable name from $slug to $current_slug to prevent conflict with header.php
+$current_slug = isset($_GET['slug']) ? trim($_GET['slug']) : '';
 $cat_name = 'Products';
 
 // ---- Pagination & Filters ----
@@ -19,9 +20,9 @@ $products = [];
 $total_pages = 1;
 $categories_list = [];
 
-if ($ok && !empty($slug)) {
-    // EXACT DB COLUMN USE KIYA HAI: 'slug_url'
-    $slug_safe = $conn->real_escape_string($slug);
+if ($ok && !empty($current_slug)) {
+    // DB COLUMN USE KIYA HAI: 'slug_url'
+    $slug_safe = $conn->real_escape_string($current_slug);
     
     // A. Fetch Category Details & SEO
     $cat_res = $conn->query("SELECT * FROM categories WHERE slug_url = '$slug_safe' AND status = 1 LIMIT 1");
@@ -349,6 +350,8 @@ if ($search_query) {
 }
 
 @media(max-width: 960px) {
+
+    /* Mobile view: Layout switch */
     .cat-layout {
         grid-template-columns: 1fr;
     }
@@ -375,10 +378,10 @@ if ($search_query) {
 }
 </style>
 
-<!-- BREADCRUMB -->
+<!-- 3. BREADCRUMB -->
 <?php include_once 'includes/breadcrumb.php'; ?>
 
-<!-- PAGE CONTENT -->
+<!-- 4. PAGE CONTENT -->
 <div class="wrap cat-layout">
 
     <!-- LEFT COLUMN: Products Grid -->
@@ -390,7 +393,7 @@ if ($search_query) {
             <h3>No products found</h3>
             <p style="color: var(--mut); margin-top: 10px;">We couldn't find any products in this category matching your
                 search.</p>
-            <a href="category.php?slug=<?= e($slug) ?>" class="btn" style="margin-top:20px;">Clear Search</a>
+            <a href="category.php?slug=<?= e($current_slug) ?>" class="btn" style="margin-top:20px;">Clear Search</a>
         </div>
         <?php else: ?>
         <div class="pg">
@@ -415,7 +418,7 @@ if ($search_query) {
         <?php if($total_pages > 1): ?>
         <div class="pagination rv">
             <?php if($page > 1): ?>
-            <a href="?slug=<?= e($slug) ?>&page=<?= $page-1 ?><?= $search_query ? '&q='.urlencode($search_query) : '' ?>"
+            <a href="?slug=<?= e($current_slug) ?>&page=<?= $page-1 ?><?= $search_query ? '&q='.urlencode($search_query) : '' ?>"
                 class="nav-arr">Prev</a>
             <?php endif; ?>
 
@@ -424,12 +427,12 @@ if ($search_query) {
             <span class="active"><?= $i ?></span>
             <?php else: ?>
             <a
-                href="?slug=<?= e($slug) ?>&page=<?= $i ?><?= $search_query ? '&q='.urlencode($search_query) : '' ?>"><?= $i ?></a>
+                href="?slug=<?= e($current_slug) ?>&page=<?= $i ?><?= $search_query ? '&q='.urlencode($search_query) : '' ?>"><?= $i ?></a>
             <?php endif; ?>
             <?php endfor; ?>
 
             <?php if($page < $total_pages): ?>
-            <a href="?slug=<?= e($slug) ?>&page=<?= $page+1 ?><?= $search_query ? '&q='.urlencode($search_query) : '' ?>"
+            <a href="?slug=<?= e($current_slug) ?>&page=<?= $page+1 ?><?= $search_query ? '&q='.urlencode($search_query) : '' ?>"
                 class="nav-arr">Next</a>
             <?php endif; ?>
         </div>
@@ -439,13 +442,16 @@ if ($search_query) {
 
     <!-- RIGHT COLUMN: Sidebar -->
     <aside class="sidebar">
+
         <!-- Search Widget -->
         <div class="sb-widget rv">
             <h3>Search Products</h3>
             <form class="search-form" method="GET" action="category.php">
-                <input type="hidden" name="slug" value="<?= e($slug) ?>">
+                <input type="hidden" name="slug" value="<?= e($current_slug) ?>">
                 <input type="text" name="q" placeholder="E.g. Almonds..." value="<?= e($search_query) ?>">
-                <button type="submit"><i class="fa fa-search"></i></button>
+                <button type="submit">
+                    <i class="fa fa-search"></i>
+                </button>
             </form>
         </div>
 
@@ -456,7 +462,9 @@ if ($search_query) {
                 <li><a href="products.php">All Products</a></li>
                 <?php foreach($categories_list as $c): ?>
                 <li>
-                    <a href="category.php?slug=<?= e($c['slug']) ?>" class="<?= $slug == $c['slug'] ? 'active' : '' ?>">
+                    <!-- FIX: Here we use $current_slug instead of $slug to check the active category -->
+                    <a href="category.php?slug=<?= e($c['slug']) ?>"
+                        class="<?= $current_slug == $c['slug'] ? 'active' : '' ?>">
                         <?= e($c['category_name']) ?>
                     </a>
                 </li>
@@ -474,7 +482,9 @@ if ($search_query) {
                 <i class="fa-brands fa-whatsapp me-2" style="font-size: 1.2rem;"></i> Chat on WhatsApp
             </a>
         </div>
+
     </aside>
+
 </div>
 
 <?php include_once 'includes/footer.php'; ?>

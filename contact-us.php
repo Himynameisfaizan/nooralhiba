@@ -1,29 +1,62 @@
 <?php
 /** NOOR AL HIBA TRADING LLC - Contact Us Page */
-$page_title = 'Contact Us | Noor Al Hiba Trading LLC';
 
-// 1. Include Header (DB Connection aur Functions isme hain)
+// 1. Database Connection (Header se pehle SEO nikalne ke liye)
+require_once __DIR__ . '/config/connect.php';
+$ok = isset($conn) && !$conn->connect_error;
+
+// 2. FETCH SEO EXPLICITLY FOR CONTACT PAGE
+if ($ok) {
+    // Exact 'Contact Us' page_name se SEO uthayenge, taaki URL ka issue na aaye
+    $seo_check = $conn->query("SELECT meta_title, meta_desc, meta_key FROM meta WHERE page_name = 'Contact Us' LIMIT 1");
+    if ($seo_check && $seo_check->num_rows > 0) {
+        $seo_row = $seo_check->fetch_assoc();
+        $meta_title = $seo_row['meta_title'];
+        $meta_desc  = $seo_row['meta_desc'];
+        $meta_key   = $seo_row['meta_key'];
+    }
+    
+    // Schema fetch
+    $schema_check = $conn->query("SELECT schema_markup FROM page_schemas WHERE page_name = 'Contact Us' LIMIT 1");
+    if ($schema_check && $schema_check->num_rows > 0) {
+        $schema = $schema_check->fetch_assoc()['schema_markup'];
+    }
+}
+
+// 3. INCLUDE HEADER (Ye automatically upar wale $meta_title aur $schema ko use karega)
 include_once 'includes/header.php';
 
-// ---- Fetch Settings (Email, Phone, Address, Map) ----
+// ---- Fetch Settings (Email, Phone, Address, Map) from `contacts` table ----
 $contact_email = 'export@nooralhibatrading.com';
 $contact_phone = '+971 50 000 0000';
 $contact_address = 'Dubai, United Arab Emirates';
 $map_iframe = '';
 
 if ($ok) {
-    $table_check_set = q("SHOW TABLES LIKE 'settings'");
-    if (count($table_check_set) > 0) {
-        $db_set = q("SELECT email, phone, address, map FROM contacts LIMIT 1");
-        if (!empty($db_set)) {
-            $contact_email = !empty($db_set[0]['email']) ? $db_set[0]['email'] : $contact_email;
-            $contact_phone = !empty($db_set[0]['phone']) ? $db_set[0]['phone'] : $contact_phone;
-            $contact_address = !empty($db_set[0]['address']) ? $db_set[0]['address'] : $contact_address;
-            $map_iframe = !empty($db_set[0]['map']) ? $db_set[0]['map'] : '';
+    $table_check_contacts = $conn->query("SHOW TABLES LIKE 'contacts'");
+    if ($table_check_contacts && $table_check_contacts->num_rows > 0) {
+        $db_set = $conn->query("SELECT email, phone, address, map FROM contacts LIMIT 1");
+        if ($db_set && $db_set->num_rows > 0) {
+            $row = $db_set->fetch_assoc();
+            $contact_email = !empty($row['email']) ? $row['email'] : $contact_email;
+            $contact_phone = !empty($row['phone']) ? $row['phone'] : $contact_phone;
+            $contact_address = !empty($row['address']) ? $row['address'] : $contact_address;
+            
+            // --- FIX FOR MAP RENDERING ---
+            $raw_map = trim($row['map']);
+            if (!empty($raw_map)) {
+                // Agar DB mein link <iframe se shuru nahi hota, toh usko iframe mein wrap kardo
+                if (strpos($raw_map, '<iframe') === false) {
+                    $map_iframe = '<iframe src="' . htmlspecialchars($raw_map, ENT_QUOTES, 'UTF-8') . '" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>';
+                } else {
+                    $map_iframe = $raw_map;
+                }
+            }
         }
     }
 }
 
+// Fallback Map
 if (empty($map_iframe)) {
     $map_iframe = '<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14008.114827184209!2d77.1630325!3d28.7040592!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390d02330a133d1b%3A0xc6651da039b4b9fb!2sAzadpur%2C%20Delhi!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>';
 }
@@ -38,9 +71,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_contact'])) {
         $subject = $conn->real_escape_string($_POST['subject']);
         $message = $conn->real_escape_string($_POST['message']);
         
-        // Checking if inquiries table exists
-        $table_check_inq = q("SHOW TABLES LIKE 'inquiries'");
-        if (count($table_check_inq) > 0) {
+        $table_check_inq = $conn->query("SHOW TABLES LIKE 'inquiries'");
+        if ($table_check_inq && $table_check_inq->num_rows > 0) {
             $sql = "INSERT INTO inquiries (name, email, phone, subject, message) VALUES ('$name', '$email', '$phone', '$subject', '$message')";
             if ($conn->query($sql)) {
                 $msg = "<div class='alert success'>Thank you! Your inquiry has been sent successfully. Our team will contact you soon.</div>";
@@ -53,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_contact'])) {
     }
 }
 
-// 2. Setup Breadcrumb
+// 4. Setup Breadcrumb (Ab Title Fix Hai)
 $pageTitle = "Contact Us";
 include_once 'includes/breadcrumb.php';
 ?>
@@ -70,7 +102,7 @@ include_once 'includes/breadcrumb.php';
     align-items: start;
 }
 
-/* Info Cards */
+/* FIX FOR UI: Info Cards (Proper Flex Layout) */
 .info-boxes {
     display: flex;
     flex-direction: column;
@@ -80,11 +112,14 @@ include_once 'includes/breadcrumb.php';
 .info-card {
     background: #fff;
     border: 1px solid var(--line);
-    padding: 30px;
+    padding: 25px;
     border-radius: var(--r);
-    text-align: center;
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    text-align: left;
     transition: transform 0.3s;
-    border-bottom: 3px solid var(--gold);
+    border-left: 4px solid var(--gold);
 }
 
 .info-card:hover {
@@ -92,47 +127,59 @@ include_once 'includes/breadcrumb.php';
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.05);
 }
 
-.info-card svg {
-    width: 40px;
-    height: 40px;
+.info-card .icn {
+    width: 50px;
+    height: 50px;
+    background: var(--sand);
     color: var(--bronze);
-    margin-bottom: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
 }
 
-.info-card h3 {
-    font-size: 1.2rem;
-    margin-bottom: 10px;
+.info-card .txt h3 {
+    font-size: 1.15rem;
+    margin-bottom: 5px;
     color: var(--ink);
+    font-family: 'Hanken Grotesk', sans-serif;
+    font-weight: 700;
 }
 
-.info-card p,
-.info-card a {
+.info-card .txt p,
+.info-card .txt a {
     font-size: 0.95rem;
     color: var(--mut);
-    text-decoration: none;
-    display: block;
+    margin: 0;
+    word-break: break-word;
+    line-height: 1.5;
 }
 
-.info-card a:hover {
+.info-card .txt a:hover {
     color: var(--bronze);
 }
 
 /* Form */
 .contact-form-box {
-    background: var(--paper);
+    background: #fff;
     border: 1px solid var(--line);
     padding: 40px;
     border-radius: var(--r);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
 }
 
 .contact-form-box h2 {
     font-size: 2rem;
     margin-bottom: 10px;
+    color: var(--ink);
 }
 
 .contact-form-box>p {
     color: var(--mut);
     margin-bottom: 30px;
+    font-size: 0.95rem;
 }
 
 .form-grid {
@@ -164,14 +211,29 @@ include_once 'includes/breadcrumb.php';
     border-radius: var(--r);
     font-family: inherit;
     transition: 0.3s;
-    background: #fff;
+    background: var(--paper);
 }
 
 .form-group input:focus,
 .form-group textarea:focus {
     outline: none;
     border-color: var(--gold);
-    box-shadow: 0 0 0 3px rgba(214, 172, 86, 0.1);
+    box-shadow: 0 0 0 3px rgba(214, 172, 86, 0.15);
+}
+
+.form-group .btn {
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    padding: 15px;
+    border-radius: var(--r);
+    width: 100%;
+    justify-content: center;
+    transition: 0.3s;
+}
+
+.form-group .btn:hover {
+    background: var(--bronze);
 }
 
 .alert {
@@ -194,7 +256,7 @@ include_once 'includes/breadcrumb.php';
     border: 1px solid #f5c6cb;
 }
 
-/* Map */
+/* FIX FOR MAP */
 .map-section {
     margin-top: 60px;
     border-radius: var(--r);
@@ -204,6 +266,18 @@ include_once 'includes/breadcrumb.php';
     background: #eee;
 }
 
+/* Animations */
+.js .rv {
+    opacity: 0;
+    transform: translateY(22px);
+    transition: opacity .9s var(--e), transform .9s var(--e);
+}
+
+.js .rv.in {
+    opacity: 1;
+    transform: none;
+}
+
 @media(max-width: 960px) {
     .contact-grid {
         grid-template-columns: 1fr;
@@ -211,7 +285,7 @@ include_once 'includes/breadcrumb.php';
 
     .info-boxes {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     }
 }
 
@@ -225,34 +299,30 @@ include_once 'includes/breadcrumb.php';
 <section class="contact-layout">
     <div class="wrap contact-grid">
 
-        <!-- Left: Contact Details -->
+        <!-- Left: Contact Details (UI Fixed) -->
         <div class="info-boxes rv">
             <div class="info-card">
-                <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-                </svg>
-                <h3>Our Office</h3>
-                <p><?= nl2br(e($contact_address)) ?></p>
+                <div class="icn"><i class="fa-solid fa-location-dot"></i></div>
+                <div class="txt">
+                    <h3>Our Office</h3>
+                    <p><?= nl2br(e($contact_address)) ?></p>
+                </div>
             </div>
 
             <div class="info-card">
-                <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-2.896-1.596-5.54-4.24-7.136-7.136l1.292-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
-                </svg>
-                <h3>Call Us</h3>
-                <a href="tel:<?= e($contact_phone) ?>"><?= e($contact_phone) ?></a>
+                <div class="icn"><i class="fa-solid fa-phone"></i></div>
+                <div class="txt">
+                    <h3>Call Us</h3>
+                    <a href="tel:<?= e($contact_phone) ?>"><?= e($contact_phone) ?></a>
+                </div>
             </div>
 
             <div class="info-card">
-                <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-                </svg>
-                <h3>Email Us</h3>
-                <a href="mailto:<?= e($contact_email) ?>"><?= e($contact_email) ?></a>
+                <div class="icn"><i class="fa-solid fa-envelope"></i></div>
+                <div class="txt">
+                    <h3>Email Us</h3>
+                    <a href="mailto:<?= e($contact_email) ?>"><?= e($contact_email) ?></a>
+                </div>
             </div>
         </div>
 
@@ -272,7 +342,7 @@ include_once 'includes/breadcrumb.php';
                     </div>
                     <div class="form-group">
                         <label>Email Address *</label>
-                        <input type="email" name="email" required placeholder="john@example.com">
+                        <input type="email" name="email" required placeholder="import@company.com">
                     </div>
                     <div class="form-group">
                         <label>Phone / WhatsApp *</label>
@@ -288,8 +358,8 @@ include_once 'includes/breadcrumb.php';
                             placeholder="Please specify product, volume, and destination port..."></textarea>
                     </div>
                     <div class="form-group full">
-                        <button type="submit" name="submit_contact" class="btn"
-                            style="width: 100%; justify-content: center;">Send Message</button>
+                        <button type="submit" name="submit_contact" class="btn">Send Message <i
+                                class="fa-solid fa-paper-plane ms-2"></i></button>
                     </div>
                 </div>
             </form>
@@ -297,7 +367,7 @@ include_once 'includes/breadcrumb.php';
 
     </div>
 
-    <!-- Map Section -->
+    <!-- Map Section (Map Iframe Fixed) -->
     <div class="wrap rv">
         <div class="map-section">
             <?= $map_iframe ?>
@@ -306,3 +376,31 @@ include_once 'includes/breadcrumb.php';
 </section>
 
 <?php include_once 'includes/footer.php'; ?>
+
+<script>
+(function() {
+    var els = document.querySelectorAll('.rv');
+    if (!('IntersectionObserver' in window)) {
+        els.forEach(function(x) {
+            x.classList.add('in')
+        });
+    } else {
+        var io = new IntersectionObserver(function(es) {
+            es.forEach(function(x) {
+                if (!x.isIntersecting) return;
+                x.target.classList.add('in');
+                io.unobserve(x.target);
+                setTimeout(function() {
+                    x.target.style.transitionDelay = ''
+                }, 500);
+            })
+        }, {
+            threshold: .05
+        });
+        els.forEach(function(el, i) {
+            el.style.transitionDelay = (i % 3) * 100 + 'ms';
+            io.observe(el);
+        });
+    }
+})();
+</script>

@@ -211,8 +211,7 @@ $sub_categories = mysqli_query($conn,$sub_cate_query);
                                             <div class="col-md-4 mb-3">
                                                 <label class="form-label" for="selling_price">Selling Price</label>
                                                 <input type="text" class="form-control" name="selling_price"
-                                                    id="selling_price" value="<?= $product['selling_price'] ?>"
-                                                     />
+                                                    id="selling_price" value="<?= $product['selling_price'] ?>" />
                                             </div>
 
                                             <!-- Status -->
